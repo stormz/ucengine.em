@@ -34,13 +34,33 @@ module EventMachine
       end
     end
 
-  protected
-
     def url(path)
       "http://#{@host}:#{@port}#{@root}/#{@version}/#{path}"
     end
 
     class Session < Struct.new(:uce, :uid, :sid)
+      def time
+        uce.time { |time| yield time }
+      end
+
+      def presence(sid)
+        get("/presence/#{sid}") { |infos| yield infos }
+      end
+
+    protected
+
+      def query
+        { :uid => uid, :sid => sid }
+      end
+
+      def get(path)
+        http = EM::HttpRequest.new(uce.url path).get(:query => query)
+        http.errback  { yield nil }
+        http.callback do
+          data = Yajl::Parser.parse(http.response)
+          yield data && data.has_key?("result") && data["result"]
+        end
+      end
     end
   end
 end
