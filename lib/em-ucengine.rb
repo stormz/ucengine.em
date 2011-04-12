@@ -10,7 +10,7 @@ module EventMachine
     self.api_root = "/api"
     self.api_version = "0.4"
 
-    def initialize(host="localhost", port=5280)
+   def initialize(host="localhost", port=5280)
       @host = host
       @port = port
     end

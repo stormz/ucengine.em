@@ -11,7 +11,6 @@ Gem::Specification.new do |s|
   s.files            = Dir["LICENSE", "README.md", "Gemfile", "lib/**/*.rb"]
   s.require_paths    = ["lib"]
   s.rubygems_version = %q{1.3.7}
-  s.add_dependency "eventmachine", "~>0.12"
-  s.add_dependency "em-http-request", "~>0.3"
-  s.add_development_dependency "rspec", "~>2.4"
+  s.add_dependency "em-http-request", "1.0.0.beta3"
+  s.add_development_dependency "minitest", "~>2.0"
 end
