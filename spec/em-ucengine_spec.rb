@@ -5,8 +5,8 @@ require "em-ucengine"
 
 
 # See http://docs.ucengine.org/install.html#inject-some-data
-USER = "participant"
-PASS = "pwd"
+USER = "root"
+PASS = "root"
 
 
 describe EventMachine::UCEngine do
@@ -51,6 +51,48 @@ describe EventMachine::UCEngine do
       s.presence(s.sid) do |infos|
         infos.wont_be_nil
         infos["user"].must_equal s["uid"]
+        EM.stop
+      end
+    end
+  end
+
+  it "lists users" do
+    with_authentication do |s|
+      s.users do |users|
+        users.must_be_instance_of Array
+        users.count.must_be :>=, 1
+        users.map {|u| u["name"] }.must_include USER
+        EM.stop
+      end
+    end
+  end
+
+  it "find a user with its uid" do
+    with_authentication do |s|
+      s.user(s["uid"]) do |user|
+        user.wont_be_nil
+        user["name"].must_equal USER
+        EM.stop
+      end
+    end
+  end
+
+  it "create a user and delete it" do
+    with_authentication do |s|
+      s.create_user(:name => "John Doe #{rand 10_000}", :auth => "password", :credential => "foobar", :metadata => {}) do |user_id|
+        user_id.wont_be_nil
+        user_id.must_be :>, 1
+        s.delete_user(user_id)
+        EM.stop
+      end
+    end
+  end
+
+  it "get current domain informations" do
+    with_authentication do |s|
+      s.infos do |infos|
+        infos.wont_be_nil
+        infos["domain"].must_equal "localhost"
         EM.stop
       end
     end

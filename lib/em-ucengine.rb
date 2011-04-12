@@ -14,12 +14,7 @@ module EventMachine
     end
 
     def time
-      http = EM::HttpRequest.new(url "time").get
-      http.errback  { yield nil }
-      http.callback do
-        data = Yajl::Parser.parse(http.response)
-        yield data && data.has_key?("result") && data["result"].to_i
-      end
+      Session.new(self, nil, nil).time { |time| yield time }
     end
 
     def connect(user, password, metadata=nil)
@@ -40,24 +35,71 @@ module EventMachine
 
     class Session < Struct.new(:uce, :uid, :sid)
       def time
-        uce.time { |time| yield time }
+        get("/time") { |result| yield result }
       end
 
       def presence(sid)
-        get("/presence/#{sid}") { |infos| yield infos }
+        get("/presence/#{sid}") { |result| yield result }
+      end
+
+      def disconnect
+        delete("/presence/#{sid}") { }
+      end
+
+      def users
+        get("/user") { |result| yield result }
+      end
+
+      def user(uid)
+        get("/user/#{uid}") { |result| yield result }
+      end
+
+      def create_user(data)
+        post("/user", data) { |result| yield result && result.to_i }
+      end
+
+      def update_user(uid, data)
+        put("/user/#{uid}", data) { |result| yield result }
+      end
+
+      def delete_user(uid)
+        delete("/user/#{uid}") { }
+      end
+
+      def infos
+        get("/infos") { |result| yield result }
+      end
+
+      def update_infos(metadata)
+        put("/infos", :metadata => metadata) { |result| yield result }
       end
 
     protected
 
-      def query
-        { :uid => uid, :sid => sid }
+      def get(path)
+        http_request(:get, path) { |result| yield result }
       end
 
-      def get(path)
-        http = EM::HttpRequest.new(uce.url path).get(:query => query)
+      def post(path, body=nil)
+        http_request(:post, path, body) { |result| yield result }
+      end
+
+      def put(path, body=nil)
+        http_request(:put, path, body) { |result| yield result }
+      end
+
+      def delete(path)
+        http_request(:delete, path) { |result| yield result }
+      end
+
+      def http_request(method, path, body=nil)
+        opts = { :query => { :uid => uid, :sid => sid } }
+        opts[:body] = body if body
+        http = EM::HttpRequest.new(uce.url path).send(method, opts)
         http.errback  { yield nil }
         http.callback do
           data = Yajl::Parser.parse(http.response)
+          $stderr.puts ">> #{method} #{path}: #{data.inspect}"
           yield data && data.has_key?("result") && data["result"]
         end
       end
