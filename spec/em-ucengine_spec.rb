@@ -7,6 +7,7 @@ require "em-ucengine"
 # See http://docs.ucengine.org/install.html#inject-some-data
 USER = "root"
 PASS = "root"
+CHAN = "demo"
 
 
 describe EventMachine::UCEngine do
@@ -94,6 +95,36 @@ describe EventMachine::UCEngine do
         infos.wont_be_nil
         infos["domain"].must_equal "localhost"
         EM.stop
+      end
+    end
+  end
+
+  it "publish an event and retrieves it" do
+    with_authentication do |s|
+      n = rand(1_000_000_000)
+      s.publish("em-ucengine.spec.publish", CHAN, :number => n) do
+        s.events(CHAN, :type => "em-ucengine.spec.publish", :count => 1, :order => 'desc') do |events|
+          events.wont_be_nil
+          events.first["metadata"]["number"].to_i.must_equal n
+          EM.stop
+        end
+      end
+    end
+  end
+
+  it "subscribe to events" do
+    with_authentication do |s|
+      numbers = (0..2).map { rand(1_000_000_000) }
+
+      numbers.each.with_index do |n,i|
+        EM.add_timer(0.2 * i) { s.publish("em-ucengine.spec.subscribe", CHAN, :number => n) }
+      end
+
+      s.subscribe(CHAN, :type => "em-ucengine.spec.subscribe") do |events|
+        n = events.first["metadata"]["number"].to_i
+        numbers.must_include n
+        numbers.delete(n)
+        EM.stop if numbers.empty?
       end
     end
   end

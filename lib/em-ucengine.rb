@@ -127,13 +127,23 @@ module EventMachine
         get("/event/#{meeting}", params) { |result| yield result if block_given? }
       end
 
-      def subscribe(meeting, params={})
+      def subscribe(meeting, params={}, &blk)
         params[:_async] = "lp"
-        # TODO
+        recurse = Proc.new do |result|
+          next unless result
+          blk.call(result)
+          params[:start] = result.last["datetime"].to_i + 1
+          get("/event/#{meeting}", params, &recurse) if EM.reactor_running?
+        end
+        time do |time|
+          params[:start] = time
+          get("/event/#{meeting}", params, &recurse)
+        end
       end
 
       def publish(type, meeting=nil, metadata=nil)
-        body = { :metadata => metadata } if metadata
+        body = { :type => type }
+        body[:metadata] = metadata if metadata
         post("/event/#{meeting}", body) { |result| yield result if block_given? }
       end
 
@@ -166,7 +176,6 @@ module EventMachine
         http.errback  { yield nil }
         http.callback do
           data = Yajl::Parser.parse(http.response)
-          $stderr.puts ">> #{method} #{path}: #{data.inspect}"
           yield data && data.has_key?("result") && data["result"]
         end
       end
