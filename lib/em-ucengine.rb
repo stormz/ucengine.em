@@ -34,44 +34,90 @@ module EventMachine
     end
 
     class Session < Struct.new(:uce, :uid, :sid)
+
+      ### Time - http://docs.ucengine.org/api.html#time ###
+
       def time
-        get("/time") { |result| yield result }
+        get("/time") { |result| yield result if block_given? }
       end
 
+      ### Presence - http://docs.ucengine.org/api.html#authentication ###
+
       def presence(sid)
-        get("/presence/#{sid}") { |result| yield result }
+        get("/presence/#{sid}") { |result| yield result if block_given? }
       end
 
       def disconnect
-        delete("/presence/#{sid}") { }
+        delete("/presence/#{sid}") { |result| yield result if block_given? }
       end
 
+      ### Users - http://docs.ucengine.org/api.html#user ###
+
       def users
-        get("/user") { |result| yield result }
+        get("/user") { |result| yield result if block_given? }
       end
 
       def user(uid)
-        get("/user/#{uid}") { |result| yield result }
+        get("/user/#{uid}") { |result| yield result if block_given? }
       end
 
       def create_user(data)
-        post("/user", data) { |result| yield result && result.to_i }
+        post("/user", data) { |result| yield result && result.to_i if block_given? }
       end
 
       def update_user(uid, data)
-        put("/user/#{uid}", data) { |result| yield result }
+        put("/user/#{uid}", data) { |result| yield result if block_given? }
       end
 
       def delete_user(uid)
-        delete("/user/#{uid}") { }
+        delete("/user/#{uid}") { |result| yield result if block_given? }
       end
 
+      ### General infos - http://docs.ucengine.org/api.html#infos ###
+
       def infos
-        get("/infos") { |result| yield result }
+        get("/infos") { |result| yield result if block_given? }
       end
 
       def update_infos(metadata)
-        put("/infos", :metadata => metadata) { |result| yield result }
+        put("/infos", :metadata => metadata) { |result| yield result if block_given? }
+      end
+
+      ### Meetings - http://docs.ucengine.org/api.html#meeting ###
+
+      def meetings(status=nil)
+        get("/meeting/#{status}") { |result| yield result if block_given? }
+      end
+
+      def meeting(meeting)
+        get("/meeting/all/#{meeting}") { |result| yield result if block_given? }
+      end
+
+      def create_meeting(meeting, body={})
+        body.merge!(:meeting => meeting)
+        post("/meeting/all", body) { |result| yield result if block_given? }
+      end
+
+      def update_meeting(meeting, body={})
+        put("/meeting/all/#{meeting}", body) { |result| yield result if block_given? }
+      end
+
+      def delete_meeting(meeting)
+        delete("/meeting/all/#{meeting}") { |result| yield result if block_given? }
+      end
+
+      ### Rosters - http://docs.ucengine.org/api.html#join-a-meeting ###
+
+      def roster(meeting)
+        get("/meeting/all/#{meeting}/roster") { |result| yield result if block_given? }
+      end
+
+      def join_roster(meeting)
+        post("/meeting/all/#{meeting}/roster") { |result| yield result if block_given? }
+      end
+
+      def quit_roster(meeting, uid=nil)
+        delete("/meeting/all/#{meeting}/roster/#{uid || @uid}") { |result| yield result if block_given? }
       end
 
     protected

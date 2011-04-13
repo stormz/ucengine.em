@@ -22,6 +22,16 @@ Then, you can use it in your code:
     require "em-ucengine"
 
 
+TODO
+----
+
+* Files API
+* ACL or Roles API
+* Better error handling
+* Complete the specs
+* Compatibility with em-synchrony
+
+
 Issues or Suggestions
 ---------------------
 
