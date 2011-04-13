@@ -25,11 +25,14 @@ Then, you can use it in your code:
 TODO
 ----
 
+* Subscribe events
 * Files API
 * ACL or Roles API
 * Better error handling
 * Complete the specs
 * Compatibility with em-synchrony
+* Yard documentation
+* Show an example in the README
 
 
 Issues or Suggestions

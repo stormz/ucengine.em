@@ -120,27 +120,48 @@ module EventMachine
         delete("/meeting/all/#{meeting}/roster/#{uid || @uid}") { |result| yield result if block_given? }
       end
 
+      ### Events - http://docs.ucengine.org/api.html#events ###
+
+      def events(meeting, params={})
+        params[:_async] = "no"
+        get("/event/#{meeting}", params) { |result| yield result if block_given? }
+      end
+
+      def subscribe(meeting, params={})
+        params[:_async] = "lp"
+        # TODO
+      end
+
+      def publish(type, meeting=nil, metadata=nil)
+        body = { :metadata => metadata } if metadata
+        post("/event/#{meeting}", body) { |result| yield result if block_given? }
+      end
+
+      def search(params)
+        get("/search/event/", params) { |result| yield result if block_given? }
+      end
+
     protected
 
-      def get(path)
-        http_request(:get, path) { |result| yield result }
+      def get(path, params={})
+        http_request(:get, path, :query => params) { |result| yield result }
       end
 
       def post(path, body=nil)
-        http_request(:post, path, body) { |result| yield result }
+        http_request(:post, path, :body => body) { |result| yield result }
       end
 
       def put(path, body=nil)
-        http_request(:put, path, body) { |result| yield result }
+        http_request(:put, path, :body => body) { |result| yield result }
       end
 
       def delete(path)
         http_request(:delete, path) { |result| yield result }
       end
 
-      def http_request(method, path, body=nil)
-        opts = { :query => { :uid => uid, :sid => sid } }
-        opts[:body] = body if body
+      def http_request(method, path, opts={})
+        opts[:query] ||= {}
+        opts[:query].merge!(:uid => uid, :sid => sid)
         http = EM::HttpRequest.new(uce.url path).send(method, opts)
         http.errback  { yield nil }
         http.callback do
