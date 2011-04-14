@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name             = "em-ucengine"
-  s.version          = "0.1.0"
+  s.version          = "0.1.1"
   s.date             = Time.now.utc.strftime("%Y-%m-%d")
   s.homepage         = "http://github.com/af83/ucengine.em"
   s.authors          = "Bruno Michel"
