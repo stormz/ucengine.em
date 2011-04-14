@@ -6,6 +6,10 @@ require "yajl"
 module EventMachine
   class UCEngine
 
+    def self.run(*args)
+      EM.run { yield self.new(*args) }
+    end
+
     def initialize(host="localhost", port=5280, api_root="/api", api_version="0.4")
       @host = host
       @port = port

@@ -20,6 +20,16 @@ If you use bundler, add it to your `Gemfile`:
 Then, you can use it in your code:
 
     require "em-ucengine"
+    EventMachine::UCEngine.run do |uce|
+      uce.connect("participant", "pwd") do |session|
+        EM.add_periodic_timer(1) { session.publish("em-ucengine.example.ping", "demo") }
+        session.subscribe("demo") do |event|
+          puts "Hey, we received an event: #{event.inspect}"
+        end
+      end
+    end
+
+Don't hesitate to look at the specs for more examples ;-)
 
 
 TODO
@@ -31,7 +41,6 @@ TODO
 * Complete the specs
 * Compatibility with em-synchrony
 * Yard documentation
-* Show an example in the README
 
 
 Issues or Suggestions
@@ -42,7 +51,7 @@ Found an issue or have a suggestion? Please report it on
 
 If you wants to make a pull request, please check the specs before:
 
-    rspec spec
+    ./spec/em-ucengine_spec.rb
 
 
 Copyright (c) 2011 af83, released under the LGPL license

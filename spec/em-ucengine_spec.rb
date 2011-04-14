@@ -12,8 +12,7 @@ CHAN = "demo"
 
 describe EventMachine::UCEngine do
   def with_authentication
-    EM.run do
-      uce = EventMachine::UCEngine.new
+    EventMachine::UCEngine.run do |uce|
       uce.connect(USER, PASS) { |sess| yield sess }
     end
   end
