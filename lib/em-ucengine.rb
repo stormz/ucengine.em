@@ -10,7 +10,7 @@ module EventMachine
       EM.run { yield self.new(*args) }
     end
 
-    def initialize(host="localhost", port=5280, api_root="/api", api_version="0.4")
+    def initialize(host="localhost", port=5280, api_root="/api", api_version="0.5")
       @host = host
       @port = port
       @root = api_root
