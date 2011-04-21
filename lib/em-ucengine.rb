@@ -155,6 +155,16 @@ module EventMachine
         get("/search/event/", params) { |result| yield result if block_given? }
       end
 
+      ### Roles - http://docs.ucengine.org/api.html#roles ###
+
+      def create_role(data)
+        post("/role/", data) { |result| yield result if block_given? }
+      end
+
+      def delete_role(name)
+        delete("/role/#{name}") { |result| yield result if block_given? }
+      end
+
     protected
 
       def get(path, params={})
