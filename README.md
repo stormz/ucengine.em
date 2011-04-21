@@ -49,6 +49,14 @@ Issues or Suggestions
 Found an issue or have a suggestion? Please report it on
 [Github's issue tracker](http://github.com/af83/ucengine.em/issues).
 
+First you must have an ucengine instance goto the source directory and start:
+
+    make run
+
+Once the console started successfully
+
+    demo:start().
+
 If you wants to make a pull request, please check the specs before:
 
     ./spec/em-ucengine_spec.rb
