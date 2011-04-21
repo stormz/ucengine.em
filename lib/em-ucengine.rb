@@ -66,7 +66,7 @@ module EventMachine
       end
 
       def create_user(data)
-        post("/user", data) { |result| yield result && result.to_i if block_given? }
+        post("/user", data) { |result| yield result && result if block_given? }
       end
 
       def update_user(uid, data)

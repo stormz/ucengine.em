@@ -81,7 +81,7 @@ describe EventMachine::UCEngine do
     with_authentication do |s|
       s.create_user(:name => "John Doe #{rand 10_000}", :auth => "password", :credential => "foobar", :metadata => {}) do |user_id|
         user_id.wont_be_nil
-        user_id.must_be :>, 1
+        user_id.size.must_be :>, 0
         s.delete_user(user_id)
         EM.stop
       end
