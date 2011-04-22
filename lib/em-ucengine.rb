@@ -165,6 +165,10 @@ module EventMachine
         delete("/role/#{name}") { |result| yield result if block_given? }
       end
 
+      def user_role(uid, params={})
+        post("/user/#{uid}/roles", params){ |result| yield result if block_given? }
+      end
+
     protected
 
       def get(path, params={})

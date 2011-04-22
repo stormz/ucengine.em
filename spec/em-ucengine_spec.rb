@@ -139,4 +139,19 @@ describe EventMachine::UCEngine do
       end
     end
   end
+
+  it "set user role" do
+    role_name = "role#{rand 10_000}"
+    with_authentication do |s|
+      s.create_role(:name => role_name, :auth => "password", :credential => "foobar", :metadata => {}) do |r|
+        s.user_role(s.uid, :role => role_name, :auth => "password", :credential => "foobar") do |result|
+          result.wont_be_nil
+          result.must_be :==, 'ok'
+          s.delete_role(role_name)
+          EM.stop
+        end
+      end
+    end
+  end
+
 end
