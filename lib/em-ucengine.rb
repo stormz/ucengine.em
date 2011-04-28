@@ -24,7 +24,7 @@ module EventMachine
     def connect(user, password, metadata=nil)
       body = { "name" => user, "credential" => password }
       body["metadata"] = metadata if metadata
-      http = EM::HttpRequest.new(url "presence").post :body => body
+      http = EM::HttpRequest.new(url "/presence").post :body => body
       http.errback  { yield nil }
       http.callback do
         data = Yajl::Parser.parse(http.response)
@@ -34,7 +34,7 @@ module EventMachine
     end
 
     def url(path)
-      "http://#{@host}:#{@port}#{@root}/#{@version}/#{path}"
+      "http://#{@host}:#{@port}#{@root}/#{@version}#{path}"
     end
 
     class Session < Struct.new(:uce, :uid, :sid)
