@@ -106,10 +106,6 @@ module EventMachine
         put("/meeting/all/#{meeting}", body) { |result| yield result if block_given? }
       end
 
-      def delete_meeting(meeting)
-        delete("/meeting/all/#{meeting}") { |result| yield result if block_given? }
-      end
-
       ### Rosters - http://docs.ucengine.org/api.html#join-a-meeting ###
 
       def roster(meeting)
