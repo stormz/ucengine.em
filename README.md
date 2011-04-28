@@ -36,12 +36,10 @@ TODO
 ----
 
 * Files API
-* ACL or Roles API
 * Better error handling
 * Complete the specs
 * Compatibility with em-synchrony
 * Yard documentation
-
 
 Issues or Suggestions
 ---------------------
@@ -59,7 +57,7 @@ Once the console started successfully
 
 If you wants to make a pull request, please check the specs before:
 
-    ./spec/em-ucengine_spec.rb
+    rake test
 
 
 Copyright (c) 2011 af83, released under the LGPL license
