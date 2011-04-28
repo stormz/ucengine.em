@@ -98,7 +98,7 @@ module EventMachine
       end
 
       def create_meeting(meeting, body={})
-        body.merge!(:meeting => meeting)
+        body.merge!(:name => meeting)
         post("/meeting/all", body) { |result| yield result if block_given? }
       end
 
