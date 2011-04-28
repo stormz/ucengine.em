@@ -188,8 +188,10 @@ module EventMachine
       end
 
       def http_request(method, path, opts={})
-        opts[:query] ||= {}
-        opts[:query].merge!(:uid => uid, :sid => sid)
+        key = (method == :get || method == :delete) ? :query : :body
+        opts[key] ||= {}
+        opts[key].merge!(:uid => uid, :sid => sid)
+
         http = EM::HttpRequest.new(uce.url path).send(method, opts)
         http.errback  { yield nil }
         http.callback do

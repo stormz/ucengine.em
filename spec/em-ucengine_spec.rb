@@ -154,4 +154,14 @@ describe EventMachine::UCEngine do
     end
   end
 
+  it "create a meeting and delete it" do
+    with_authentication do |s|
+      n = rand(99999).to_s
+      s.create_meeting("chuck_#{n}") do |result|
+        result.must_be :==, 'created'
+        EM.stop
+      end
+    end
+  end
+
 end
