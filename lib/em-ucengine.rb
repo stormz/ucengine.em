@@ -33,6 +33,10 @@ module EventMachine
       end
     end
 
+    def create_user(data)
+        post("/user", data) { |result| yield result && result if block_given? }
+    end
+
     def url(path)
       "http://#{@host}:#{@port}#{@root}/#{@version}#{path}"
     end
