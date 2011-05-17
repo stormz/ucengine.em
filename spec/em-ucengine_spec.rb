@@ -166,7 +166,7 @@ describe EventMachine::UCEngine do
 
   it "upload a file in a meeting" do
     with_authentication do |s|
-      s.upload("demo", File.new(__FILE__), { :plop => 'plop' }) do |result|
+      s.upload("demo", File.new(__FILE__), { :chuck => 'norris' }) do |result|
         result.must_include File.basename(__FILE__, '.rb')
         EM.stop
       end

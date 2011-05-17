@@ -178,10 +178,10 @@ module EventMachine
         partsid = Part.new( :name => 'sid',
                             :body => sid)
         parts = [partfile, partsid, partuid]
-        metadata.each_pair do |key, value|
-          parts << Part.new( :name => "metadata[#{key}]",
+        parts << metadata.inject([]) { |array, (key, value)|
+          array << Part.new( :name => "metadata[#{key}]",
                              :body => value )
-        end
+        }
 
         body = MultipartBody.new(parts)
 
