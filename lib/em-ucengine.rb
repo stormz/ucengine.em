@@ -1,7 +1,18 @@
 require "eventmachine"
 require "em-http-request"
-require "yajl"
+require 'yajl'
 
+# TODO: remove after em-http-request@1.0.0beta3
+module EventMachine
+  module Middleware
+    class JSONResponse
+      def response(resp)
+        body = Yajl::Parser.parse(resp.response)
+        resp.response = body
+      end
+    end
+  end
+end
 
 module EventMachine
   class UCEngine
@@ -192,10 +203,14 @@ module EventMachine
         opts[key] ||= {}
         opts[key].merge!(:uid => uid, :sid => sid)
 
-        http = EM::HttpRequest.new(uce.url path).send(method, opts)
-        http.errback  { yield nil }
-        http.callback do
-          data = Yajl::Parser.parse(http.response)
+        conn = EM::HttpRequest.new(uce.url path)
+        # TODO: remove the 'new' after em-http-request@1.0.0beta3
+        conn.use EventMachine::Middleware::JSONResponse.new
+        req = conn.send(method, opts)
+        req.errback  { yield nil }
+        req.callback do
+          data = req.response
+          puts data["error"] unless not data.has_key?("error")
           yield data && data.has_key?("result") && data["result"]
         end
       end
