@@ -1,6 +1,7 @@
 require "eventmachine"
 require "em-http-request"
-require 'yajl'
+require "multipart_body"
+require "yajl"
 
 # TODO: remove after em-http-request@1.0.0beta3
 module EventMachine
@@ -164,6 +165,37 @@ module EventMachine
 
       def search(params)
         get("/search/event/", params) { |result| yield result if block_given? }
+      end
+
+      ### Files - http://docs.ucengine.org/api.html#upload-a-file ###
+
+      def upload(meeting, file, metadata={})
+        partfile = Part.new( :name => 'content',
+                             :filename => File.basename(file.path),
+                             :body =>  file.read)
+        partuid = Part.new( :name => 'uid',
+                            :body => uid)
+        partsid = Part.new( :name => 'sid',
+                            :body => sid)
+        parts = [partfile, partsid, partuid]
+        metadata.each_pair do |key, value|
+          parts << Part.new( :name => "metadata[#{key}]",
+                             :body => value )
+        end
+
+        body = MultipartBody.new(parts)
+
+        conn = EM::HttpRequest.new(uce.url "/file/#{meeting}")
+        # TODO: remove the 'new' after em-http-request@1.0.0beta3
+        conn.use EventMachine::Middleware::JSONResponse.new
+        req = conn.post( :head => {'content-type' => "multipart/form-data; boundary=#{body.boundary}"},
+                         :body => body.to_s)
+        req.errback  { yield nil }
+        req.callback do
+          data = req.response
+          puts data["error"] unless not data.has_key?("error")
+          yield data && data.has_key?("result") && data["result"]
+        end
       end
 
       ### Roles - http://docs.ucengine.org/api.html#roles ###
