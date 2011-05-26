@@ -19,15 +19,17 @@ If you use bundler, add it to your `Gemfile`:
 
 Then, you can use it in your code:
 
-    require "em-ucengine"
-    EventMachine::UCEngine.run do |uce|
-      uce.connect("participant", "pwd") do |session|
-        EM.add_periodic_timer(1) { session.publish("em-ucengine.example.ping", "demo") }
-        session.subscribe("demo") do |event|
-          puts "Hey, we received an event: #{event.inspect}"
-        end
-      end
+```ruby
+require "em-ucengine"
+EventMachine::UCEngine.run do |uce|
+  uce.connect("participant", "pwd") do |err, session|
+    EM.add_periodic_timer(1) { session.publish("em-ucengine.example.ping", "demo") }
+    session.subscribe("demo") do |err, event|
+      puts "Hey, we received an event: #{event.inspect}"
     end
+  end
+end
+```
 
 Don't hesitate to look at the specs for more examples ;-)
 
@@ -36,7 +38,6 @@ TODO
 ----
 
 * Files API
-* Better error handling
 * Complete the specs
 * Compatibility with em-synchrony
 * Yard documentation
@@ -51,9 +52,9 @@ First you must have an ucengine instance goto the source directory and start:
 
     make run
 
-Once the console started successfully
+Once the console started successfully, in an other shell
 
-    demo:start().
+    PATH=$PATH:./rel/ucengine/bin contrib/demo.sh localhost
 
 If you wants to make a pull request, please check the specs before:
 
