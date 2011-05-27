@@ -15,7 +15,7 @@ Install with Rubygems:
 
 If you use bundler, add it to your `Gemfile`:
 
-    gem "em-ucengine", "~>0.1"
+    gem "em-ucengine", "~>0.2"
 
 Then, you can use it in your code:
 
