@@ -1,19 +1,7 @@
 require "eventmachine"
 require "em-http-request"
 require "multipart_body"
-require "yajl"
-
-# TODO: remove after em-http-request@1.0.0beta3
-module EventMachine
-  module Middleware
-    class JSONResponse
-      def response(resp)
-        body = Yajl::Parser.parse(resp.response)
-        resp.response = body
-      end
-    end
-  end
-end
+require 'em-http/middleware/json_response'
 
 module EventMachine
 
@@ -39,6 +27,8 @@ module EventMachine
       @port = port
       @root = api_root
       @version = api_version
+
+      EM::HttpRequest.use EM::Middleware::JSONResponse
     end
 
     def time
@@ -54,7 +44,7 @@ module EventMachine
         if http.response_header.status >= 500
           yield HttpError.new(http.response_header.status, http.response), nil
         else
-          data = Yajl::Parser.parse(http.response)
+          data = http.response
           if data['error']
             yield UCError.new(http.response_header.status, data["error"]), nil
           else
@@ -207,8 +197,6 @@ module EventMachine
         body = MultipartBody.new(parts)
 
         conn = EM::HttpRequest.new(uce.url "/file/#{meeting}")
-        # TODO: remove the 'new' after em-http-request@1.0.0beta3
-        conn.use EventMachine::Middleware::JSONResponse.new
         req = conn.post( :head => {'content-type' => "multipart/form-data; boundary=#{body.boundary}"},
                          :body => body.to_s)
         req.errback  { yield HttpError.new(0, "connection error"), nil }
@@ -260,8 +248,6 @@ module EventMachine
         opts[key].merge!(:uid => uid, :sid => sid)
 
         conn = EM::HttpRequest.new(uce.url path)
-        # TODO: remove the 'new' after em-http-request@1.0.0beta3
-        conn.use EventMachine::Middleware::JSONResponse.new
         req = conn.send(method, opts)
         req.errback  { yield HttpError.new(0, "connect error"), nil }
         req.callback do
