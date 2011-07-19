@@ -54,7 +54,7 @@ First you must have an ucengine instance goto the source directory and start:
 
 Once the console started successfully, in an other shell
 
-    PATH=$PATH:./rel/ucengine/bin contrib/demo.sh localhost
+    ./rel/ucengine/bin/demo.sh localhost
 
 If you wants to make a pull request, please check the specs before:
 
