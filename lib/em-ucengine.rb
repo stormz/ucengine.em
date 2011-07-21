@@ -154,13 +154,13 @@ module EventMachine
       end
 
       def subscribe(meeting, params={}, &blk)
-        params[:_async] = "lp"
+        params[:mode] = "longpolling"
         recurse = Proc.new do |err, result|
           if !result.nil? && !result.last.nil?
             blk.call(err, result)
             params[:start] = result.last["datetime"].to_i + 1
           end
-          get("/event/#{meeting}", params, &recurse) if EM.reactor_running?
+          get("/live/#{meeting}", params, &recurse) if EM.reactor_running?
         end
         time do |err, time|
           params[:start] = time
