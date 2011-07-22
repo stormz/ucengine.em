@@ -2,6 +2,7 @@ require "eventmachine"
 require "em-http-request"
 require "multipart_body"
 require 'em-http/middleware/json_response'
+require 'json'
 
 module EventMachine
 
@@ -169,9 +170,9 @@ module EventMachine
       end
 
       def publish(type, meeting=nil, metadata=nil)
-        body = { :type => type }
-        body[:metadata] = metadata if metadata
-        post("/event/#{meeting}", body) { |err, result| yield err, result if block_given? }
+        args = { :type => type, :uid => uid, :sid => sid }
+        args[:metadata] = metadata if metadata
+        json_post("/event/#{meeting}", args) { |err, result| yield err, result if block_given? }
       end
 
       def search(params)
@@ -232,6 +233,20 @@ module EventMachine
 
       def post(path, body=nil)
         http_request(:post, path, :body => body) { |err, result| yield err, result }
+      end
+
+      def json_post(path, args)
+        req = EM::HttpRequest.new(uce.url path).post :body => args.to_json, :head => {'Content-Type' => 'application/json'}
+        req.errback  { yield HttpError.new(0, "connect error"), nil }
+        req.callback do
+          data = req.response
+          if data['error']
+            yield UCError.new(req.response_header.status, data["error"]), nil
+          else
+            result = data["result"]
+            yield nil, result
+          end
+        end
       end
 
       def put(path, body=nil)
