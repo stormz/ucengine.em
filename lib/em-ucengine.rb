@@ -200,16 +200,8 @@ module EventMachine
         conn = EM::HttpRequest.new(uce.url "/file/#{meeting}")
         req = conn.post( :head => {'content-type' => "multipart/form-data; boundary=#{body.boundary}"},
                          :body => body.to_s)
-        req.errback  { yield HttpError.new(0, "connection error"), nil }
-        req.callback do
-          data = req.response
-          if data['error']
-            yield UCError.new(http.response_header.status, data["error"]), nil
-          else
-            yield nil, data['result']
-          end
-        end
-      end
+        answer req
+     end
 
       ### Roles - http://docs.ucengine.org/api.html#roles ###
 
@@ -235,19 +227,12 @@ module EventMachine
         http_request(:post, path, :body => body) { |err, result| yield err, result }
       end
 
-      def json_post(path, args)
-        req = EM::HttpRequest.new(uce.url path).post :body => args.to_json, :head => {'Content-Type' => 'application/json'}
-        req.errback  { yield HttpError.new(0, "connect error"), nil }
-        req.callback do
-          data = req.response
-          if data['error']
-            yield UCError.new(req.response_header.status, data["error"]), nil
-          else
-            result = data["result"]
-            yield nil, result
-          end
-        end
-      end
+      def json_post(path, args, &block)
+        req = EM::HttpRequest.new(uce.url path).post(
+            :body => args.to_json,
+            :head => {'Content-Type' => 'application/json'})
+        answer(req, &block)
+     end
 
       def put(path, body=nil)
         http_request(:put, path, :body => body) { |err, result| yield err, result }
@@ -257,24 +242,30 @@ module EventMachine
         http_request(:delete, path) { |err, result| yield err, result }
       end
 
-      def http_request(method, path, opts={})
+      def answer(req)
+        req.errback  { yield HttpError.new(0, "connect error"), nil }
+        req.callback do
+          data = req.response
+          if block_given?
+            if data['error']
+              yield UCError.new(req.response_header.status, data["error"]), nil
+            else
+              result = data["result"]
+              yield nil, result
+            end
+          end
+        end
+      end
+
+      def http_request(method, path, opts={}, &block)
         key = (method == :get || method == :delete) ? :query : :body
         opts[key] ||= {}
         opts[key].merge!(:uid => uid, :sid => sid)
 
         conn = EM::HttpRequest.new(uce.url path)
         req = conn.send(method, opts)
-        req.errback  { yield HttpError.new(0, "connect error"), nil }
-        req.callback do
-          data = req.response
-          if data['error']
-            yield UCError.new(req.response_header.status, data["error"]), nil
-          else
-            result = data["result"]
-            yield nil, result
-          end
-        end
-      end
+        answer(req, &block)
+     end
     end
   end
 end
