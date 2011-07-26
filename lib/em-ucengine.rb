@@ -20,6 +20,8 @@ module EventMachine
     class UCError < HttpError
     end
 
+    # Represent a subscription to the U.C.Engine API
+    # Use #subscribe to create a new one
     class Subscription
       def initialize(session, type, params={}, &block)
         params[:type] = type
@@ -41,6 +43,7 @@ module EventMachine
         end
       end
 
+      # Start subscription
       def run
         @session.time do |err, time|
           @params[:start] = time
@@ -48,6 +51,7 @@ module EventMachine
         end
       end
 
+      # Cancel subscription
       def cancel
         @cancelled = true
         @req.close
@@ -269,6 +273,7 @@ module EventMachine
       #
       # @param [String] meeting
       # @param [Hash] params
+      # @return Subscription
       def subscribe(meeting, params={}, &block)
         s = Subscription.new(self, params[:type], {:meeting => meeting}, &block)
         s.run
