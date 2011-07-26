@@ -27,20 +27,17 @@ module EventMachine
         @params = params
         @session = session
         @meeting = params[:meeting]
-        @on_cancel = Proc.new {}
         @cancelled = false
 
         @recurse = Proc.new do |err, result|
-          if @cancelled
-            @on_cancel.call
-          else
-            if !result.nil? && !result.last.nil?
-              block.call(err, result)
-              @params[:start] = result.last["datetime"].to_i + 1
-            end
-
-            @session.get("/live/#{@meeting}", @params, &@recurse)
+          # Stop long polling if canceled
+          next if @cancelled
+          if !result.nil? && !result.last.nil?
+            block.call(err, result)
+            @params[:start] = result.last["datetime"].to_i + 1
           end
+
+          @req = @session.get("/live/#{@meeting}", @params, &@recurse)
         end
       end
 
@@ -51,9 +48,10 @@ module EventMachine
         end
       end
 
-      def cancel(&block)
-        @on_cancel = block
+      def cancel
         @cancelled = true
+        @req.close
+        yield if block_given?
       end
     end
 
@@ -384,6 +382,7 @@ module EventMachine
             end
           end
         end
+        req
       end
 
       def http_request(method, path, opts={}, &block)
