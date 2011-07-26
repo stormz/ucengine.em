@@ -19,6 +19,43 @@ module EventMachine
     class UCError < HttpError
     end
 
+    class Subscription
+      def initialize(session, type, params={}, &block)
+        params[:type] = type
+        params[:mode] ||= "longpolling"
+        @params = params
+        @session = session
+        @meeting = params[:meeting]
+        @on_cancel = Proc.new {}
+        @cancelled = false
+
+        @recurse = Proc.new do |err, result|
+          if @cancelled
+            @on_cancel.call
+          else
+            if !result.nil? && !result.last.nil?
+              block.call(err, result)
+              @params[:start] = result.last["datetime"].to_i + 1
+            end
+
+            @session.get("/live/#{@meeting}", @params, &@recurse)
+          end
+        end
+      end
+
+      def run
+        @session.time do |err, time|
+          @params[:start] = time
+          @session.get("/event/#{@meeting}", @params, &@recurse)
+        end
+      end
+
+      def cancel(&block)
+        @on_cancel = block
+        @cancelled = true
+      end
+    end
+
     def self.run(*args)
       EM.run { yield self.new(*args) }
     end
@@ -154,19 +191,10 @@ module EventMachine
         get("/event/#{meeting}", params) { |err, result| yield err, result if block_given? }
       end
 
-      def subscribe(meeting, params={}, &blk)
-        params[:mode] = "longpolling"
-        recurse = Proc.new do |err, result|
-          if !result.nil? && !result.last.nil?
-            blk.call(err, result)
-            params[:start] = result.last["datetime"].to_i + 1
-          end
-          get("/live/#{meeting}", params, &recurse) if EM.reactor_running?
-        end
-        time do |err, time|
-          params[:start] = time
-          get("/event/#{meeting}", params, &recurse)
-        end
+      def subscribe(meeting, params={}, &block)
+        s = Subscription.new(self, params[:type], {:meeting => meeting}, &block)
+        s.run
+        s
       end
 
       def publish(type, meeting=nil, metadata=nil)
@@ -217,8 +245,6 @@ module EventMachine
         post("/user/#{uid}/roles", params){ |err, result| yield err, result if block_given? }
       end
 
-    protected
-
       def get(path, params={})
         http_request(:get, path, :query => params) { |err, result| yield err, result }
       end
@@ -232,7 +258,7 @@ module EventMachine
             :body => args.to_json,
             :head => {'Content-Type' => 'application/json'})
         answer(req, &block)
-     end
+      end
 
       def put(path, body=nil)
         http_request(:put, path, :body => body) { |err, result| yield err, result }

@@ -42,7 +42,7 @@ describe EventMachine::UCEngine do
       EM.stop
     end
   end
-  
+
   it "fails when trying to authenticate a non existant user" do
     EM.run do
       EventMachine::UCEngine.run do |uce|
@@ -109,6 +109,7 @@ describe EventMachine::UCEngine do
   it "get current domain informations" do
     with_authentication do |s|
       s.infos do |err, infos|
+        assert_nil err
         infos.wont_be_nil
         infos["domain"].must_equal "localhost"
         EM.stop
@@ -119,7 +120,9 @@ describe EventMachine::UCEngine do
   it "publish an event and retrieves it" do
     with_authentication do |s|
       n = rand(1_000_000_000)
-      s.publish("em-ucengine.spec.publish", CHAN, :number => n) do
+      s.publish("em-ucengine.spec.publish", CHAN, :number => n) do |err, events|
+        assert_nil err
+        events.wont_be_nil
         s.events(CHAN, :type => "em-ucengine.spec.publish", :count => 1, :order => 'desc') do |err, events|
           events.wont_be_nil
           events.first["metadata"]["number"].to_i.must_equal n
@@ -134,14 +137,24 @@ describe EventMachine::UCEngine do
       numbers = (0..2).map { rand(1_000_000_000) }
 
       numbers.each.with_index do |n,i|
-        EM.add_timer(0.2 * i) { s.publish("em-ucengine.spec.subscribe", CHAN, :number => n) }
+        EM.add_timer(0.2 * i) do
+          s.publish("em-ucengine.spec.subscribe", CHAN, :number => n) do |err, result|
+            assert_nil err
+            result.wont_be_nil
+          end
+        end
       end
 
-      s.subscribe(CHAN, :type => "em-ucengine.spec.subscribe") do |err, events|
-        n = events.first["metadata"]["number"].to_i
-        numbers.must_include n
-        numbers.delete(n)
-        EM.stop if numbers.empty?
+      subscription = s.subscribe(CHAN, :type => "em-ucengine.spec.subscribe") do |err, events|
+        assert_nil err
+        events.wont_be_nil
+
+        events.each do |event|
+          n = numbers.shift
+          event["metadata"]["number"].to_i.must_equal n
+        end
+
+        subscription.cancel { EM.stop } if numbers.empty?
       end
     end
   end
@@ -184,8 +197,12 @@ describe EventMachine::UCEngine do
   end
 
   it "upload a file in a meeting" do
+    skip "Not Implemented Yet"
     with_authentication do |s|
       s.upload("demo", File.new(__FILE__), { :chuck => 'norris' }) do |err, result|
+        assert_nil err
+        result.wont_be_nil
+
         result.must_include File.basename(__FILE__, '.rb')
         EM.stop
       end
