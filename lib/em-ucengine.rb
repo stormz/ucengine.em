@@ -322,6 +322,35 @@ module EventMachine
         answer(req, &block)
       end
 
+      # Download a file
+      # The result will a File object
+      # uce.download("demo", "myfile") do |err, file|
+      #    puts file.open.read
+      # end
+      #
+      # @param [String] meeting
+      # @param [String] filename
+      def download(meeting, filename)
+        req = prepare_request(:get, "/file/#{meeting}/#{filename}")
+        answer_download(req) { |err, result| yield err, result if block_given? }
+      end
+
+      # Delete a file
+      #
+      # @param [String] meeting
+      # @param [String] filename
+      def delete_file(meeting, filename)
+        delete("/file/#{meeting}/#{filename}") { |err, result| yield err, result if block_given? }
+      end
+
+      # List files on a meeting room
+      #
+      # @param [String] meeting
+      # @param [Hash] params
+      def files(meeting, params={})
+        get("/file/#{meeting}", params) { |err, result| yield err, result if block_given? }
+      end
+
       ### Roles - http://docs.ucengine.org/api.html#roles ###
 
       # Create a role
@@ -385,14 +414,34 @@ module EventMachine
         req
       end
 
+      def answer_download(req)
+        req.errback  { yield HttpError.new(0, "connect error"), nil }
+        req.callback do
+          if block_given?
+            if req.response_header.status == 200
+              data = req.response
+              filename = req.response_header['CONTENT_DISPOSITION']
+              file = Tempfile.new(filename)
+              file.write(data)
+              yield nil, file
+            end
+          end
+        end
+        req
+      end
+
       def http_request(method, path, opts={}, &block)
+        req = prepare_request(method, path, opts)
+        answer(req, &block)
+      end
+
+      def prepare_request(method, path, opts={})
         key = (method == :get || method == :delete) ? :query : :body
         opts[key] ||= {}
         opts[key].merge!(:uid => uid, :sid => sid)
 
         conn = EM::HttpRequest.new(uce.url path)
         req = conn.send(method, opts)
-        answer(req, &block)
       end
     end
   end

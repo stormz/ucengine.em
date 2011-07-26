@@ -37,7 +37,6 @@ Don't hesitate to look at the specs for more examples ;-)
 TODO
 ----
 
-* Files API
 * Complete the specs
 * Compatibility with em-synchrony
 

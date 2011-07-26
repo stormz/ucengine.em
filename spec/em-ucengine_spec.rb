@@ -196,12 +196,39 @@ describe EventMachine::UCEngine do
     end
   end
 
-  it "upload a file in a meeting" do
+  it "upload and download a file in a meeting" do
     with_authentication do |s|
-      s.upload("demo", File.new(__FILE__), { :chuck => 'norris' }) do |err, result|
+      file = File.new(__FILE__)
+      content = File.read(__FILE__)
+      s.upload(CHAN, file, { :chuck => 'norris' }) do |err, result|
         assert_nil err
         result.wont_be_nil
-        EM.stop
+        s.download(CHAN, result) do |err, file2|
+          assert_nil err
+          file2.open.read.must_be :==, content
+          file2.close
+          file.close
+          EM.stop
+        end
+      end
+    end
+  end
+
+  it "list files and delete" do
+    with_authentication do |s|
+      file = File.new(__FILE__)
+      s.upload(CHAN, file, { :chuck => 'norris' }) do |err, filename|
+        assert_nil err
+        s.files(CHAN) do |err, result|
+          assert_nil err
+          result.size.must_be :>, 0
+          s.delete_file(CHAN, filename) do |err, result|
+            assert_nil err
+            result.must_be :==, "ok"
+
+            EM.stop
+          end
+        end
       end
     end
   end
