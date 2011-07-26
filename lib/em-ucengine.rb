@@ -300,10 +300,10 @@ module EventMachine
       # @param [String] meeting name
       # @param [File] file
       # @param [Hash] metadata
-      def upload(meeting, file, metadata={})
+      def upload(meeting, file, metadata={}, &block)
         partfile = Part.new( :name => 'content',
                              :filename => File.basename(file.path),
-                             :body =>  file.read)
+                             :body =>  "plopplop")
         partuid = Part.new( :name => 'uid',
                             :body => uid)
         partsid = Part.new( :name => 'sid',
@@ -318,8 +318,8 @@ module EventMachine
 
         conn = EM::HttpRequest.new(uce.url "/file/#{meeting}")
         req = conn.post( :head => {'content-type' => "multipart/form-data; boundary=#{body.boundary}"},
-                         :body => body.to_s)
-        answer req
+                         :body => "#{body.to_s}\r\n")
+        answer(req, &block)
       end
 
       ### Roles - http://docs.ucengine.org/api.html#roles ###

@@ -197,13 +197,10 @@ describe EventMachine::UCEngine do
   end
 
   it "upload a file in a meeting" do
-    skip "Not Implemented Yet"
     with_authentication do |s|
       s.upload("demo", File.new(__FILE__), { :chuck => 'norris' }) do |err, result|
         assert_nil err
         result.wont_be_nil
-
-        result.must_include File.basename(__FILE__, '.rb')
         EM.stop
       end
     end
