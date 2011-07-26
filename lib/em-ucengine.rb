@@ -303,7 +303,7 @@ module EventMachine
       def upload(meeting, file, metadata={}, &block)
         partfile = Part.new( :name => 'content',
                              :filename => File.basename(file.path),
-                             :body =>  "plopplop")
+                             :body =>  file.read)
         partuid = Part.new( :name => 'uid',
                             :body => uid)
         partsid = Part.new( :name => 'sid',
