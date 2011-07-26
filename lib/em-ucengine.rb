@@ -94,7 +94,7 @@ module EventMachine
     end
 
     def create_user(data)
-        post("/user", data) { |err, result| yield err, result if block_given? }
+      post("/user", data) { |err, result| yield err, result if block_given? }
     end
 
     def url(path)
@@ -229,7 +229,7 @@ module EventMachine
         req = conn.post( :head => {'content-type' => "multipart/form-data; boundary=#{body.boundary}"},
                          :body => body.to_s)
         answer req
-     end
+      end
 
       ### Roles - http://docs.ucengine.org/api.html#roles ###
 
@@ -255,8 +255,8 @@ module EventMachine
 
       def json_post(path, args, &block)
         req = EM::HttpRequest.new(uce.url path).post(
-            :body => args.to_json,
-            :head => {'Content-Type' => 'application/json'})
+                                                     :body => args.to_json,
+                                                     :head => {'Content-Type' => 'application/json'})
         answer(req, &block)
       end
 
@@ -291,7 +291,7 @@ module EventMachine
         conn = EM::HttpRequest.new(uce.url path)
         req = conn.send(method, opts)
         answer(req, &block)
-     end
+      end
     end
   end
 end
