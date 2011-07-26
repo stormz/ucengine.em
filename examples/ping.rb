@@ -9,7 +9,7 @@ EventMachine::UCEngine.run do |uce|
     EM.add_periodic_timer(1) do
         session.publish("em-ucengine.example.ping", "demo", {:type => "something", :value => [1,2,3]}) 
     end
-    session.subscribe("demo") do |event|
+    session.subscribe("demo") do |err, event|
       puts "Hey, we received an event: #{event.inspect}"
     end
   end
