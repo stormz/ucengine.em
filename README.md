@@ -40,7 +40,6 @@ TODO
 * Files API
 * Complete the specs
 * Compatibility with em-synchrony
-* Yard documentation
 
 Issues or Suggestions
 ---------------------
