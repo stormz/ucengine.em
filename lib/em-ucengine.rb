@@ -25,21 +25,42 @@ module EventMachine
     class Subscription
       def initialize(session, type, params={}, &block)
         params[:type] = type
-        params[:mode] ||= "longpolling"
+        params[:mode] ||= "eventsource"
         @params = params
         @session = session
         @meeting = params[:meeting]
         @cancelled = false
+        @block = block
+        @lastid = nil
+        @retry = 3 # seconds
+      end
 
-        @recurse = Proc.new do |err, result|
-          # Stop long polling if canceled
-          next if @cancelled
-          if !result.nil? && !result.last.nil?
-            block.call(err, result)
-            @params[:start] = result.last["datetime"].to_i + 1
+      def listen
+        @req = @session.prepare_request(:get, "/live/#{@meeting}",
+                                        { :query => @params,
+                                          :head  => {'Last-Event-Id' => @lastid }})
+        @req.errback do
+          next if @canceled
+          EM.add_timer(@retry) do
+            listen
           end
-
-          @req = @session.get("/live/#{@meeting}", @params, &@recurse)
+        end
+        stream = ""
+        @req.stream do |chunk|
+          stream += chunk
+          while index = stream.index("\n")
+            subpart = stream[0..index]
+            /^data: (.+)$/.match(subpart) do |m|
+              @block.call(nil, [JSON.parse(m[1])])
+            end
+            /^id: (.+)$/.match(subpart) do |m|
+              @lastid = m[1]
+            end
+            # TODO: handle retry
+            # TODO: handle event
+            # TODO: multiline data
+            stream = stream[(index + 1)..stream.length]
+          end
         end
       end
 
@@ -47,7 +68,7 @@ module EventMachine
       def run
         @session.time do |err, time|
           @params[:start] = time
-          @session.get("/event/#{@meeting}", @params, &@recurse)
+          listen
         end
       end
 
