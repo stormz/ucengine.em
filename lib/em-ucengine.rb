@@ -92,7 +92,7 @@ module EventMachine
     # @param [Number] Port of the U.C.Engine instance
     # @param [String] Entry point of the API
     # @param [String] Version of U.C.Engine API
-    def initialize(host="localhost", port=5280, api_root="/api", api_version="0.5")
+    def initialize(host="localhost", port=5280, api_root="/api", api_version="0.6")
       @host = host
       @port = port
       @root = api_root
