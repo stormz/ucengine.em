@@ -208,6 +208,19 @@ module EventMachine
         delete("/user/#{uid}") { |err, result| yield err, result if block_given? }
       end
 
+      # Check user ACL
+      #
+      # @param [String] uid
+      # @param [String] action
+      # @param [String] object
+      # @param [Hash] conditions
+      # @param [String] meeting name
+      def user_can(uid, action, object, conditions={}, location="")
+        get("/user/#{uid}/can/#{action}/#{object}/#{location}", :conditions => conditions) do |err, result|
+          yield err, result == "true" if block_given?
+        end
+      end
+
       ### General infos - http://docs.ucengine.org/api.html#infos ###
 
       # Get domain infos

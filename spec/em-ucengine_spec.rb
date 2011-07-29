@@ -179,8 +179,12 @@ describe EventMachine::UCEngine do
         s.user_role(s.uid, :role => role_name, :auth => "password", :credential => "foobar") do |err, result|
           result.wont_be_nil
           result.must_be :==, 'ok'
-          s.delete_role(role_name)
-          EM.stop
+          s.user_can(s.uid, "update", "meeting") do |err, result|
+            err.must_be_nil
+            result.must_be :==, true
+            s.delete_role(role_name)
+            EM.stop
+          end
         end
       end
     end
