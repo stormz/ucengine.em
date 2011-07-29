@@ -152,8 +152,8 @@ module EventMachine
       ### Time - http://docs.ucengine.org/api.html#time ###
 
       # Get server time
-      def time
-        get("/time") { |err, result| yield err, result if block_given? }
+      def time(&block)
+        get("/time", &block)
       end
 
       ### Presence - http://docs.ucengine.org/api.html#authentication ###
@@ -161,51 +161,51 @@ module EventMachine
       # Get infos on the presence
       #
       # @param [String] Sid
-      def presence(sid)
-        get("/presence/#{sid}") { |err, result| yield err, result if block_given? }
+      def presence(sid, &block)
+        get("/presence/#{sid}", &block)
       end
 
       # Disconnect a user
       #
       # @param [String] Sid
-      def disconnect(sid)
-        delete("/presence/#{sid}") { |err, result| yield err, result if block_given? }
+      def disconnect(sid, &block)
+        delete("/presence/#{sid}", &block)
       end
 
       ### Users - http://docs.ucengine.org/api.html#user ###
 
       # List users
-      def users
-        get("/user") { |err, result| yield err, result if block_given? }
+      def users(&block)
+        get("/user", &block)
       end
 
       # Get user info
       #
       # @param [String] uid
-      def user(uid)
-        get("/user/#{uid}") { |err, result| yield err, result if block_given? }
+      def user(uid, &block)
+        get("/user/#{uid}", &block)
       end
 
       # Create user
       #
       # @param [Hash] data
-      def create_user(data)
-        post("/user", data) { |err, result| yield err, result && result if block_given? }
+      def create_user(data, &block)
+        post("/user", data, &block)
       end
 
       # Update user
       #
       # @param [String] uid
       # @param [Hash] data
-      def update_user(uid, data)
-        put("/user/#{uid}", data) { |err, result| yield err, result if block_given? }
+      def update_user(uid, data, &block)
+        put("/user/#{uid}", data, &block)
       end
 
       # Delete a user
       #
       # @param [String] uid
-      def delete_user(uid)
-        delete("/user/#{uid}") { |err, result| yield err, result if block_given? }
+      def delete_user(uid, &block)
+        delete("/user/#{uid}", &block)
       end
 
       # Check user ACL
@@ -224,15 +224,15 @@ module EventMachine
       ### General infos - http://docs.ucengine.org/api.html#infos ###
 
       # Get domain infos
-      def infos
-        get("/infos") { |err, result| yield err, result if block_given? }
+      def infos(&block)
+        get("/infos", &block)
       end
 
       # Update domain infos
       #
       # @param [Hash] metadata
-      def update_infos(metadata)
-        put("/infos", :metadata => metadata) { |err, result| yield err, result if block_given? }
+      def update_infos(metadata, &block)
+        put("/infos", :metadata => metadata, &block)
       end
 
       ### Meetings - http://docs.ucengine.org/api.html#meeting ###
@@ -240,32 +240,32 @@ module EventMachine
       # List meetings
       #
       # @param [String] status (upcoming, opened, closed or all)
-      def meetings(status=nil)
-        get("/meeting/#{status}") { |err, result| yield err, result if block_given? }
+      def meetings(status=nil, &block)
+        get("/meeting/#{status}", &block)
       end
 
       # Get meeting
       #
       # @param [String] meeting
-      def meeting(meeting)
-        get("/meeting/all/#{meeting}") { |err, result| yield err, result if block_given? }
+      def meeting(meeting, &block)
+        get("/meeting/all/#{meeting}", &block)
       end
 
       # Create a meeting
       #
       # @param [String] meeting name
       # @param [Hash] metadata
-      def create_meeting(meeting, body={})
+      def create_meeting(meeting, body={}, &block)
         body.merge!(:name => meeting)
-        post("/meeting/all", body) { |err, result| yield err, result if block_given? }
+        post("/meeting/all", body, &block)
       end
 
       # Update a meeting
       #
       # @param [String] meeting name
       # @param [Hash] metadata
-      def update_meeting(meeting, body={})
-        put("/meeting/all/#{meeting}", body) { |err, result| yield err, result if block_given? }
+      def update_meeting(meeting, body={}, &block)
+        put("/meeting/all/#{meeting}", body, &block)
       end
 
       ### Rosters - http://docs.ucengine.org/api.html#join-a-meeting ###
@@ -273,23 +273,23 @@ module EventMachine
       # List users on the meeting
       #
       # @param [String] meeting
-      def roster(meeting)
-        get("/meeting/all/#{meeting}/roster") { |err, result| yield err, result if block_given? }
+      def roster(meeting, &block)
+        get("/meeting/all/#{meeting}/roster", &block)
       end
 
       # Join the meeting
       #
       # @param [String] meeting
-      def join_roster(meeting)
-        post("/meeting/all/#{meeting}/roster") { |err, result| yield err, result if block_given? }
+      def join_roster(meeting, &block)
+        post("/meeting/all/#{meeting}/roster", &block)
       end
 
       # Quit the meeting
       #
       # @param [String] meeting
       # @param [String] uid
-      def quit_roster(meeting, uid=nil)
-        delete("/meeting/all/#{meeting}/roster/#{uid || @uid}") { |err, result| yield err, result if block_given? }
+      def quit_roster(meeting, uid=nil, &block)
+        delete("/meeting/all/#{meeting}/roster/#{uid || @uid}", &block)
       end
 
       ### Events - http://docs.ucengine.org/api.html#events ###
@@ -298,9 +298,9 @@ module EventMachine
       #
       # @param [String] meeting
       # @param [Hash] params
-      def events(meeting=nil, params={})
+      def events(meeting=nil, params={}, &block)
         params[:_async] = "no"
-        get("/event/#{meeting}", params) { |err, result| yield err, result if block_given? }
+        get("/event/#{meeting}", params, &block)
       end
 
       # Subscribe to events
@@ -328,8 +328,8 @@ module EventMachine
       # Search
       #
       # @param [Hash] params
-      def search(params)
-        get("/search/event/", params) { |err, result| yield err, result if block_given? }
+      def search(params, &block)
+        get("/search/event/", params, &block)
       end
 
       ### Files - http://docs.ucengine.org/api.html#upload-a-file ###
@@ -369,25 +369,25 @@ module EventMachine
       #
       # @param [String] meeting
       # @param [String] filename
-      def download(meeting, filename)
+      def download(meeting, filename, &block)
         req = prepare_request(:get, "/file/#{meeting}/#{filename}")
-        answer_download(req) { |err, result| yield err, result if block_given? }
+        answer_download(req, &block)
       end
 
       # Delete a file
       #
       # @param [String] meeting
       # @param [String] filename
-      def delete_file(meeting, filename)
-        delete("/file/#{meeting}/#{filename}") { |err, result| yield err, result if block_given? }
+      def delete_file(meeting, filename, &block)
+        delete("/file/#{meeting}/#{filename}", &block)
       end
 
       # List files on a meeting room
       #
       # @param [String] meeting
       # @param [Hash] params
-      def files(meeting, params={})
-        get("/file/#{meeting}", params) { |err, result| yield err, result if block_given? }
+      def files(meeting, params={}, &block)
+        get("/file/#{meeting}", params, &block)
       end
 
       ### Roles - http://docs.ucengine.org/api.html#roles ###
@@ -395,31 +395,31 @@ module EventMachine
       # Create a role
       #
       # @param [Hash] data
-      def create_role(data)
-        post("/role/", data) { |err, result| yield err, result if block_given? }
+      def create_role(data, &block)
+        post("/role/", data, &block)
       end
 
       # Delete a role
       #
       # @param [String] name
-      def delete_role(name)
-        delete("/role/#{name}") { |err, result| yield err, result if block_given? }
+      def delete_role(name, &block)
+        delete("/role/#{name}", &block)
       end
 
       # Set a role to a user
       #
       # @param [String] uid
       # @param [Hash] params
-      def user_role(uid, params={})
-        post("/user/#{uid}/roles", params){ |err, result| yield err, result if block_given? }
+      def user_role(uid, params={}, &block)
+        post("/user/#{uid}/roles", params, &block)
       end
 
-      def get(path, params={})
-        http_request(:get, path, :query => params) { |err, result| yield err, result }
+      def get(path, params={}, &block)
+        http_request(:get, path, :query => params, &block)
       end
 
-      def post(path, body=nil)
-        http_request(:post, path, :body => body) { |err, result| yield err, result }
+      def post(path, body=nil, &block)
+        http_request(:post, path, :body => body, &block)
       end
 
       def json_post(path, args, &block)
@@ -429,16 +429,16 @@ module EventMachine
         answer(req, &block)
       end
 
-      def put(path, body=nil)
-        http_request(:put, path, :body => body) { |err, result| yield err, result }
+      def put(path, body=nil, &block)
+        http_request(:put, path, :body => body, &block)
       end
 
-      def delete(path)
-        http_request(:delete, path) { |err, result| yield err, result }
+      def delete(path, &block)
+        http_request(:delete, path, &block)
       end
 
       def answer(req)
-        req.errback  { yield HttpError.new(0, "connect error"), nil }
+        req.errback  { yield HttpError.new(0, "connect error"), nil if block_given? }
         req.callback do
           data = req.response
           if block_given?
@@ -454,7 +454,7 @@ module EventMachine
       end
 
       def answer_download(req)
-        req.errback  { yield HttpError.new(0, "connect error"), nil }
+        req.errback  { yield HttpError.new(0, "connect error"), nil if block_given? }
         req.callback do
           if block_given?
             if req.response_header.status == 200
