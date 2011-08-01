@@ -319,10 +319,18 @@ module EventMachine
       # @param [String] type
       # @param [String] meeting
       # @param [Hash] metadata
-      def publish(type, meeting=nil, metadata=nil)
+      def publish(type, meeting=nil, metadata=nil, &block)
         args = { :type => type, :uid => uid, :sid => sid }
         args[:metadata] = metadata if metadata
-        json_post("/event/#{meeting}", args) { |err, result| yield err, result if block_given? }
+        json_post("/event/#{meeting}", args, &block)
+      end
+
+      # Get event
+      #
+      # @param [String] id
+      def event(id, &block)
+        # Fixme: remove meeting fake param on the 0.7 release
+        get("/event/meeting/#{id}", {}, &block)
       end
 
       # Search

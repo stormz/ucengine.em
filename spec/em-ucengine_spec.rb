@@ -120,13 +120,20 @@ describe EventMachine::UCEngine do
   it "publish an event and retrieves it" do
     with_authentication do |s|
       n = rand(1_000_000_000)
-      s.publish("em-ucengine.spec.publish", CHAN, :number => n) do |err, events|
-        assert_nil err
-        events.wont_be_nil
+      s.publish("em-ucengine.spec.publish", CHAN, :number => n) do |err, event_id|
+        err.must_be_nil
+        event_id.wont_be_nil
         s.events(CHAN, :type => "em-ucengine.spec.publish", :count => 1, :order => 'desc') do |err, events|
           events.wont_be_nil
           events.first["metadata"]["number"].to_i.must_equal n
-          EM.stop
+
+          s.event(event_id) do |err, event|
+            err.must_be_nil
+            event.wont_be_nil
+            event['id'].must_equal event_id
+
+            EM.stop
+          end
         end
       end
     end
