@@ -299,7 +299,6 @@ module EventMachine
       # @param [String] meeting
       # @param [Hash] params
       def events(meeting=nil, params={}, &block)
-        params[:_async] = "no"
         get("/event/#{meeting}", params, &block)
       end
 
