@@ -1,8 +1,9 @@
 require "eventmachine"
 require "em-http-request"
 require "multipart_body"
-require 'em-http/middleware/json_response'
-require 'json'
+require "em-http/middleware/json_response"
+require "em-eventsource"
+require "json"
 
 module EventMachine
 
@@ -22,60 +23,16 @@ module EventMachine
 
     # Represent a subscription to the U.C.Engine API
     # Use #subscribe to create a new one
-    class Subscription
-      def initialize(session, type, params={}, &block)
-        params[:type] = type
-        params[:mode] ||= "eventsource"
-        @params = params
-        @session = session
-        @meeting = params[:meeting]
-        @cancelled = false
-        @block = block
-        @lastid = nil
-        @retry = 3 # seconds
-      end
-
-      def listen
-        @req = @session.prepare_request(:get, "/live/#{@meeting}",
-                                        { :query => @params,
-                                          :head  => {'Last-Event-Id' => @lastid }})
-        @req.errback do
-          next if @canceled
-          EM.add_timer(@retry) do
-            listen
-          end
-        end
-        stream = ""
-        @req.stream do |chunk|
-          stream += chunk
-          while index = stream.index("\n")
-            subpart = stream[0..index]
-            /^data: (.+)$/.match(subpart) do |m|
-              @block.call(nil, [JSON.parse(m[1])])
-            end
-            /^id: (.+)$/.match(subpart) do |m|
-              @lastid = m[1]
-            end
-            # TODO: handle retry
-            # TODO: handle event
-            # TODO: multiline data
-            stream = stream[(index + 1)..stream.length]
-          end
-        end
-      end
-
+    class Subscription < EM::EventSource
       # Start subscription
-      def run
-        @session.time do |err, time|
-          @params[:start] = time
-          listen
-        end
+      def start(start)
+        @query[:start] = start
+        super()
       end
 
       # Cancel subscription
       def cancel
-        @cancelled = true
-        @req.close
+        close
         yield if block_given?
       end
     end
@@ -308,8 +265,18 @@ module EventMachine
       # @param [Hash] params
       # @return Subscription
       def subscribe(meeting, params={}, &block)
-        s = Subscription.new(self, params[:type], {:meeting => meeting}, &block)
-        s.run
+        params[:mode] = "eventsource"
+        params.merge!(:uid => uid, :sid => sid)
+        s = Subscription.new(uce.url("/live/#{@meeting}"), params)
+        time do |err, time|
+          s.message do |message|
+            block.call(nil, [JSON.parse(message)])
+          end
+          s.error do |error|
+            puts error if source.ready_state != EM::EventSource::CONNECTING
+          end
+          s.start(time)
+        end
         s
       end
 
