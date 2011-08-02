@@ -273,7 +273,7 @@ module EventMachine
             block.call(nil, [JSON.parse(message)])
           end
           s.error do |error|
-            puts error if source.ready_state != EM::EventSource::CONNECTING
+            puts error if s.ready_state != EM::EventSource::CONNECTING
           end
           s.start(time)
         end
