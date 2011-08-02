@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     em-ucengine (0.2.0)
-      em-eventsource (= 0.1.0)
+      em-eventsource (~> 0.1.0)
       em-http-request (= 1.0.0.beta4)
       eventmachine (= 1.0.0.beta3)
       multipart_body (~> 0.2)
@@ -12,9 +12,9 @@ GEM
   remote: http://rubygems.org/
   specs:
     addressable (2.2.6)
-    em-eventsource (0.1.0)
-      em-http-request (= 1.0.0.beta4)
-      eventmachine (= 1.0.0.beta3)
+    em-eventsource (0.1.2)
+      em-http-request (~> 1.0.0.beta4)
+      eventmachine (~> 1.0.0.beta3)
     em-http-request (1.0.0.beta.4)
       addressable (>= 2.2.3)
       em-socksify
@@ -24,9 +24,9 @@ GEM
       eventmachine
     eventmachine (1.0.0.beta.3)
     http_parser.rb (0.5.1)
-    minitest (2.1.0)
+    minitest (2.3.1)
     multipart_body (0.2.1)
-    rake (0.8.7)
+    rake (0.9.2)
     yajl-ruby (0.8.2)
 
 PLATFORMS
