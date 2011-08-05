@@ -285,8 +285,9 @@ module EventMachine
       # @param [String] type
       # @param [String] meeting
       # @param [Hash] metadata
-      def publish(type, meeting=nil, metadata=nil, &block)
+      def publish(type, meeting=nil, metadata=nil, parent=nil, &block)
         args = { :type => type, :uid => uid, :sid => sid }
+        args[:parent] = parent if parent
         args[:metadata] = metadata if metadata
         json_post("/event/#{meeting}", args, &block)
       end
