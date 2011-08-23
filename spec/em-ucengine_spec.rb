@@ -10,7 +10,7 @@ PASS = "root"
 CHAN = "demo"
 
 
-describe EventMachine::UCEngine do
+describe EventMachine::UCEngine::Client do
   def with_authentication
     EventMachine::UCEngine::Client.run do |uce|
       uce.connect(USER, PASS) { |err, sess|
