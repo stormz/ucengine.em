@@ -6,7 +6,7 @@ by [EventMachine](https://github.com/eventmachine/eventmachine). It can
 connect, subscribe and publish events to U.C.Engine.
 
 
-## How to use it
+## Install
 
 
 Install with Rubygems:
@@ -17,7 +17,9 @@ If you use bundler, add it to your `Gemfile`:
 
     gem "em-ucengine", "~>0.2"
 
-Then, you can use it in your code:
+## Usage
+
+### Client
 
 ```ruby
 require "em-ucengine"
@@ -31,8 +33,23 @@ EventMachine::UCEngine::Client.run do |uce|
 end
 ```
 
-Don't hesitate to look at the specs for more examples ;-)
+### Brick
 
+```ruby
+require "em-ucengine"
+
+class MyBrick
+  include EM::UCEngine::Brick
+
+  on "ping" do |event|
+    puts event
+  end
+end
+
+brick = MyBrick.run
+```
+
+Don't hesitate to look at the specs for more examples ;-)
 
 ## TODO
 
