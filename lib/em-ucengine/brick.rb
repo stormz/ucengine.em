@@ -47,7 +47,7 @@ module EventMachine
       # Start EventMachine, initialize and start the brick
       #
       # @param [Hash] config
-      def run(config={})
+      def self.run(config={})
         brick = self.new config
         EM::run do
           brick.start
