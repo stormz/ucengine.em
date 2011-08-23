@@ -21,7 +21,7 @@ Then, you can use it in your code:
 
 ```ruby
 require "em-ucengine"
-EventMachine::UCEngine.run do |uce|
+EventMachine::UCEngine::Client.run do |uce|
   uce.connect("participant", "pwd") do |err, session|
     EM.add_periodic_timer(1) { session.publish("em-ucengine.example.ping", "demo") }
     session.subscribe("demo") do |err, event|

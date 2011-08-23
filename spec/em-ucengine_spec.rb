@@ -12,7 +12,7 @@ CHAN = "demo"
 
 describe EventMachine::UCEngine do
   def with_authentication
-    EventMachine::UCEngine.run do |uce|
+    EventMachine::UCEngine::Client.run do |uce|
       uce.connect(USER, PASS) { |err, sess|
         if err
           EM.stop
@@ -25,7 +25,7 @@ describe EventMachine::UCEngine do
 
   it "fetches /time from UCEngine, no auth required" do
     EM.run do
-      uce = EventMachine::UCEngine.new
+      uce = EventMachine::UCEngine::Client.new
       uce.time do |err, time|
         time.wont_be_nil
         EM.stop
@@ -36,7 +36,7 @@ describe EventMachine::UCEngine do
   it "is possible to authenticate a user" do
     with_authentication do |session|
       session.wont_be_nil
-      session.uce.must_be_instance_of EventMachine::UCEngine
+      session.uce.must_be_instance_of EventMachine::UCEngine::Client
       session.uid.wont_be_nil
       session.sid.wont_be_nil
       EM.stop
@@ -45,7 +45,7 @@ describe EventMachine::UCEngine do
 
   it "fails when trying to authenticate a non existant user" do
     EM.run do
-      EventMachine::UCEngine.run do |uce|
+      EventMachine::UCEngine::Client.run do |uce|
         uce.connect('Nobody', 'pwd') { |err, sess|
           err.wont_be_nil
           err.code.must_equal 404
