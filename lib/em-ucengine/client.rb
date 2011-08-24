@@ -267,7 +267,7 @@ module EventMachine
         def subscribe(meeting, params={}, &block)
           params[:mode] = "eventsource"
           params.merge!(:uid => uid, :sid => sid)
-          s = Subscription.new(uce.url("/live/#{@meeting}"), params)
+          s = Subscription.new(uce.url("/live/#{meeting}"), params)
           time do |err, time|
             s.message do |message|
               block.call(nil, [JSON.parse(message)])
