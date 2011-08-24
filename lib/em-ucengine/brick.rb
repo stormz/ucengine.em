@@ -2,15 +2,26 @@ require 'em-ucengine/utils'
 
 module EventMachine
   module UCEngine
-    # Brick
+    # This module allows to create a new brick for UCE. A brick may be either
+    # an independent entity or a composition of several bricks, resulting in a
+    # "meta-brick". On this case, only the meta-brick should be runned and only
+    # one connection to UCE will be used.
+    #
+    # When creating a brick, one would provide a bootstrap block and declare at
+    # least one event handler for the brick to manage. Handlers will be executed
+    # in the context of the Brick instance, so one may also write arbitrary code
+    # to be used in handlers blocks.
+    #
+    # See examples/bricks.rb and specs for more details.
     module Brick
-
       def self.included(klass)
         klass.extend(ClassMethods)
       end
 
+      # Methods defined here will be made available as class methods on the
+      # class including Brick. Some class variables are pushed as well:
+      # +@@routes+, +@@bricks+, +@@bootstrap+.
       module ClassMethods
-
         def self.extended(klass)
           klass.class_eval {
             class_variable_set("@@routes", {})
@@ -19,24 +30,32 @@ module EventMachine
           }
         end
 
-        # Define a bootstrap
-        # Called before subscribing to events
+        # Define a bootstrap block, which will be called before subscribing
+        # to events.
         def bootstrap(&block)
           class_variable_set("@@bootstrap", block)
         end
 
-        # Define and event handler
+        # Define an event handler.
         #
         # @param [String] route
+        # @yield [Event] a callback to be executed when a matching event is received
+        # @example
+        #   on "my.event" do |event|
+        #     # do something
+        #   end
+        #
         def on(route, &callback)
           routes = class_variable_get("@@routes")
           routes[route] ||= []
           routes[route] << callback
         end
 
-        # add a sub-brick to the currentbrick
+        # Add a sub-brick to the current brick.
         #
-        # @param [String] route
+        # @param [Constant] Brick's class/module name
+        # @example
+        #   use MySpecializedBrick
         def use(name)
           class_variable_get("@@bricks") << name
         end
@@ -44,7 +63,18 @@ module EventMachine
 
       attr_reader :uce
 
-      # Start EventMachine, initialize and start the brick
+      # Create a new brick.
+      #
+      # @param [Hash] config
+      def initialize(config={})
+        @uce = nil
+        @config = config
+      end
+
+      # Start EventMachine, initialize and start the brick.
+      #
+      # When composing several bricks, only the meta-brick should be
+      # runned.
       #
       # @param [Hash] config
       def self.run(config={})
@@ -54,18 +84,13 @@ module EventMachine
         end
       end
 
-      # Create a new brick
+      # Start the brick.
       #
-      # @param [Hash] config
-      def initialize(config={})
-        @uce = nil
-        @config = config
-      end
-
-      # Start the brick
-      #
-      # @param [EM::UCEngine::Client] uce the instance of the client, used with sub-brick
+      # @param [EM::UCEngine::Client] uce (nil) shared instance of the client,
+      #   used by sub-bricks when composing so that only one UCE connection is
+      #   made and used
       def start(uce=nil)
+        # Not in a sub-brick, connect to UCE.
         if uce.nil?
           @uce = EM::UCEngine::Client.new(@config[:host], @config[:port])
           @uce.connect(@config[:name], @config[:credential]) do |err, uce|
@@ -76,41 +101,63 @@ module EventMachine
               b
             end)
           end
-        else
+        else # Sub-brick, init with the shared UCE client instance.
           @uce = uce
           self.instance_eval &bootstrap
         end
       end
 
+      # Accessor for +@@bootstrap+.
       def bootstrap
         self.class.class_variable_get("@@bootstrap")
       end
 
+      # Accessor for +@@routes+.
       def routes
         self.class.class_variable_get("@@routes")
       end
 
+      # Accessor for +@@bricks+.
       def bricks
         self.class.class_variable_get("@@bricks")
       end
 
+      # Wrapper around EventMachine's +add_timer+. Pass it a block to
+      # be executed after a time range.
+      #
+      # @param [Integer] n time range in milliseconds
+      # @yield
       def after(n, &block)
         EventMachine::add_timer n, &block
       end
 
+      # Wrapper around EventMachine's +add_periodic_timer+. Pass it a block to
+      # be executed on a defined time frame.
+      #
+      # @param [Integer] n time range in milliseconds
+      # @yield
       def every(n, &block)
         EventMachine::add_periodic_timer n, &block
       end
 
       protected
 
+      # Hook sub-brick's declared event handlers into the event loop, by subscribing to
+      # UCE core.
+      #
+      # @param [Array<Brick>] brick_instances
       def ready(bricks_instances)
+        r = routes.keys
+
+        # Bootstrap.
         self.instance_eval &bootstrap
 
-        r = routes.keys
+        # Merge routes when composing bricks.
         bricks_instances.each do |brick|
           r += brick.routes.keys
         end
+
+        # Subscribe to UCE for declared event handlers.
         @uce.subscribe "", :type => r.uniq.join(',') do |err, events|
           events.each do |event|
             routes[event["type"]].each do |callback|
@@ -124,7 +171,6 @@ module EventMachine
           end
         end
       end
-
     end
   end
 end
