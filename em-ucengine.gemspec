@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.require_paths    = ["lib"]
   s.rubygems_version = %q{1.3.7}
   s.add_dependency "eventmachine", "1.0.0.beta3"
-  s.add_dependency "em-http-request", "1.0.0.beta4"
+  s.add_dependency "em-http-request", "1.0.0"
   s.add_dependency "em-eventsource", "~>0.1.0"
   s.add_dependency "yajl-ruby", "~>0.8"
   s.add_dependency "multipart_body", "~>0.2"
