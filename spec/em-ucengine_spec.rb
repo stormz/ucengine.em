@@ -243,4 +243,26 @@ describe EventMachine::UCEngine::Client do
       end
     end
   end
+
+  it "create lots of users" do
+    NAMES = ["Pim", "Pam", "Poum"]
+    users = NAMES.map do |name|
+      {:name => name,
+       :auth => "password",
+       :credential => "pwd",
+       :metadata => {}
+      }
+    end
+    with_authentication do |s|
+      s.create_users users do
+        s.users do |err, result|
+          names = result.map {|user| user["name"]}
+          NAMES.each do |name|
+            assert names.include? name
+          end
+          EM.stop
+        end
+      end
+    end
+  end
 end
