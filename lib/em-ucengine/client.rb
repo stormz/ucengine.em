@@ -163,7 +163,7 @@ module EventMachine
               end
             end
           end
-       end
+        end
 
         # Update user
         #
