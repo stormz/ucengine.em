@@ -140,18 +140,8 @@ describe EventMachine::UCEngine::Client do
   end
 
   it "subscribe to events" do
+    numbers = (0..2).map { rand(1_000_000_000) }
     with_authentication do |s|
-      numbers = (0..2).map { rand(1_000_000_000) }
-
-      numbers.each.with_index do |n,i|
-        EM.add_timer(0.2 * i) do
-          s.publish("em-ucengine.spec.subscribe", CHAN, :number => n) do |err, result|
-            assert_nil err
-            result.wont_be_nil
-          end
-        end
-      end
-
       subscription = s.subscribe(CHAN, :type => "em-ucengine.spec.subscribe") do |err, events|
         assert_nil err
         events.wont_be_nil
@@ -160,10 +150,18 @@ describe EventMachine::UCEngine::Client do
           n = numbers.shift
           event["metadata"]["number"].to_i.must_equal n
         end
-
         subscription.cancel { EM.stop } if numbers.empty?
       end
-    end
+      numbers.each.with_index do |n,i|
+       EM.add_timer(0.2 * i) do
+         s.publish("em-ucengine.spec.subscribe", CHAN, :number => n) do |err, result|
+#p "plop"
+           assert_nil err
+           result.wont_be_nil
+         end
+       end
+     end
+   end
   end
 
   it "create a role and delete it" do
