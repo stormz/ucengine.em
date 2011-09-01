@@ -27,6 +27,7 @@ describe EventMachine::UCEngine::Client do
     EM.run do
       uce = EventMachine::UCEngine::Client.new
       uce.time do |err, time|
+        err.must_be_nil
         time.wont_be_nil
         EM.stop
       end
@@ -58,6 +59,7 @@ describe EventMachine::UCEngine::Client do
   it "fetches time" do
     with_authentication do |s|
       s.time do |err, time|
+        err.must_be_nil
         time.wont_be_nil
         EM.stop
       end
@@ -67,6 +69,7 @@ describe EventMachine::UCEngine::Client do
   it "retrieves presence informations" do
     with_authentication do |s|
       s.presence(s.sid) do |err, infos|
+        err.must_be_nil
         infos.wont_be_nil
         infos["user"].must_equal s["uid"]
         EM.stop
@@ -77,6 +80,7 @@ describe EventMachine::UCEngine::Client do
   it "lists users" do
     with_authentication do |s|
       s.users do |err, users|
+        err.must_be_nil
         users.must_be_instance_of Array
         users.count.must_be :>=, 1
         users.map {|u| u["name"] }.must_include USER
@@ -88,6 +92,7 @@ describe EventMachine::UCEngine::Client do
   it "find a user with its uid" do
     with_authentication do |s|
       s.user(s["uid"]) do |err, user|
+        err.must_be_nil
         user.wont_be_nil
         user["name"].must_equal USER
         EM.stop
@@ -98,6 +103,7 @@ describe EventMachine::UCEngine::Client do
   it "create a user and delete it" do
     with_authentication do |s|
       s.create_user(:name => "John Doe #{rand 10_000}", :auth => "password", :credential => "foobar", :metadata => {}) do |err, user_id|
+        err.must_be_nil
         user_id.wont_be_nil
         user_id.size.must_be :>, 0
         s.delete_user(user_id)
@@ -109,7 +115,7 @@ describe EventMachine::UCEngine::Client do
   it "get current domain informations" do
     with_authentication do |s|
       s.infos do |err, infos|
-        assert_nil err
+        err.must_be_nil
         infos.wont_be_nil
         infos["domain"].must_equal "localhost"
         EM.stop
@@ -121,15 +127,15 @@ describe EventMachine::UCEngine::Client do
     with_authentication do |s|
       n = rand(1_000_000_000)
       s.publish("em-ucengine.spec.publish", CHAN, :number => n) do |err, event_id|
-        err.must_be_nil
+        err.must_be_nil "error while publishing"
         event_id.wont_be_nil
         s.events(CHAN, :type => "em-ucengine.spec.publish", :count => 1, :order => 'desc') do |err, events|
-          events.wont_be_nil
+          events.wont_be_nil "events"
           events.first["metadata"]["number"].to_i.must_equal n
 
           s.event(event_id) do |err, event|
-            err.must_be_nil
-            event.wont_be_nil
+            err.must_be_nil "error with event"
+            event.wont_be_nil "event"
             event['id'].must_equal event_id
 
             EM.stop
@@ -143,7 +149,7 @@ describe EventMachine::UCEngine::Client do
     numbers = (0..2).map { rand(1_000_000_000) }
     with_authentication do |s|
       subscription = s.subscribe(CHAN, :type => "em-ucengine.spec.subscribe") do |err, events|
-        assert_nil err
+        err.must_be_nil
         events.wont_be_nil
 
         events.each do |event|
@@ -168,10 +174,13 @@ describe EventMachine::UCEngine::Client do
     role_name = "Role #{rand 10_000}"
     with_authentication do |s|
       s.create_role(:name => role_name, :auth => "password", :credential => "foobar", :metadata => {}) do |err, result|
+        err.must_be_nil
         result.wont_be_nil
         result.must_be :==, 'created'
-        s.delete_role(role_name)
-        EM.stop
+        s.delete_role(role_name) do |err, result|
+          err.must_be_nil
+          EM.stop
+        end
       end
     end
   end
@@ -180,8 +189,10 @@ describe EventMachine::UCEngine::Client do
     role_name = "role#{rand 10_000}"
     with_authentication do |s|
       s.create_role(:name => role_name, :auth => "password", :credential => "foobar", :metadata => {}) do |err, r|
+        err.must_be_nil
         r.wont_be_nil
         s.user_role(s.uid, :role => role_name, :auth => "password", :credential => "foobar") do |err, result|
+          err.must_be_nil
           result.wont_be_nil
           result.must_be :==, 'ok'
           s.user_can(s.uid, "update", "meeting") do |err, result|
@@ -199,6 +210,7 @@ describe EventMachine::UCEngine::Client do
     with_authentication do |s|
       n = rand(99999).to_s
       s.create_meeting("chuck_#{n}") do |err, result|
+        err.must_be_nil
         result.must_be :==, 'created'
         EM.stop
       end
@@ -210,7 +222,7 @@ describe EventMachine::UCEngine::Client do
       file = File.new(__FILE__)
       content = File.read(__FILE__)
       s.upload(CHAN, file, { :chuck => 'norris' }) do |err, result|
-        assert_nil err
+        err.must_be_nil
         result.wont_be_nil
         s.download(CHAN, result) do |err, file2|
           assert_nil err
@@ -227,12 +239,12 @@ describe EventMachine::UCEngine::Client do
     with_authentication do |s|
       file = File.new(__FILE__)
       s.upload(CHAN, file, { :chuck => 'norris' }) do |err, filename|
-        assert_nil err
+        err.must_be_nil
         s.files(CHAN) do |err, result|
-          assert_nil err
+          err.must_be_nil
           result.size.must_be :>, 0
           s.delete_file(CHAN, filename) do |err, result|
-            assert_nil err
+            err.must_be_nil
             result.must_be :==, "ok"
 
             EM.stop
@@ -254,6 +266,7 @@ describe EventMachine::UCEngine::Client do
     with_authentication do |s|
       s.create_users users do
         s.users do |err, result|
+          err.must_be_nil
           names = result.map {|user| user["name"]}
           NAMES.each do |name|
             assert names.include? name

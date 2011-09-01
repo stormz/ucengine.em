@@ -3,6 +3,7 @@ require "em-http-request"
 require "multipart_body"
 require "em-http/middleware/json_response"
 require "em-eventsource"
+require "uri"
 require "json"
 
 module EventMachine
@@ -10,11 +11,12 @@ module EventMachine
     # U.C.Engine client
     class Client
       class HttpError
-        attr_reader :code, :description
+        attr_reader :code, :description, :uri
 
-        def initialize code, description
+        def initialize code, description, uri=nil
           @code = code
           @description = description
+          @uri = uri
         end
       end
 
@@ -99,7 +101,7 @@ module EventMachine
       #
       # @param [String] Path of the method
       def url(path)
-        "http://#{@host}:#{@port}#{@root}/#{@version}#{path}"
+        URI.escape "http://#{@host}:#{@port}#{@root}/#{@version}#{path}"
       end
 
       # Session represent the U.C.Engine client with and sid and uid
@@ -428,12 +430,13 @@ module EventMachine
         end
 
         def answer(req)
-          req.errback  { yield HttpError.new(0, "connect error"), nil if block_given? }
+          req.errback {
+            yield HttpError.new(0, "connect error", req.last_effective_url), nil if block_given? }
           req.callback do
             data = req.response
             if block_given?
               if data['error']
-                yield UCError.new(req.response_header.status, data["error"]), nil
+                yield UCError.new(req.response_header.status, data["error"], req.last_effective_url), nil
               else
                 result = data["result"]
                 yield nil, result
