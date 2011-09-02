@@ -406,25 +406,44 @@ module EventMachine
           post("/user/#{uid}/roles", params, &block)
         end
 
+        # Perform a get request on the API
+        #
+        # @param [String] path
+        # @param [Hash] params
         def get(path, params={}, &block)
           http_request(:get, path, :query => params, &block)
         end
 
+        # Perform a post request on the API
+        #
+        # @param [String] path
+        # @param [Hash] body
         def post(path, body=nil, &block)
           http_request(:post, path, :body => body, &block)
         end
 
-        def json_post(path, args, &block)
+        # Perform a post request on the API with a content type application/json
+        #
+        # @param [String] path
+        # @param [Hash] body
+        def json_post(path, body, &block)
           req = EM::HttpRequest.new(uce.url path).post(
-                                                       :body => args.to_json,
+                                                       :body => body.to_json,
                                                        :head => {'Content-Type' => 'application/json'})
           answer(req, &block)
         end
 
+        # Perform a put request on the API
+        #
+        # @param [String] path
+        # @param [Hash] body
         def put(path, body=nil, &block)
           http_request(:put, path, :body => body, &block)
         end
 
+        # Perform a delete request on the API
+        #
+        # @param [String] path
         def delete(path, &block)
           http_request(:delete, path, &block)
         end
