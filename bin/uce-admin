@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+
+require 'em-ucengine'
+require 'optparse'
+require 'csv'
+
+def load_user_as_csv csv
+    cols_name = nil
+    def row2args cols, row
+        [
+            :name => row[cols_name[:name]],
+            :password => cols_name[:password] ? row[cols_name[:password]] : "pwd",
+            :role => cols_name[:role] ? row[cols_name[:role]] : nil
+        ]
+    end
+    CSV.foreach do |row|
+        if cols_name == nil
+            cols_name = [
+                :name => row.find("name"),
+                :password => row.find("password"),
+                :role => row.find("role")
+            ]
+        else
+            args = row2args row
+        end
+    end
+end
+
+load_user_as_csv ARGV[1]
