@@ -4,26 +4,34 @@ require 'em-ucengine'
 require 'optparse'
 require 'csv'
 
+class Row2args
+    def initialize row
+        @name = {
+                :name => row.index("name"),
+                :password => row.index("password"),
+                :role => row.index("role")
+        }
+    end
+
+    def args row
+        {
+            :name => row[@name[:name]],
+            :password => @name[:password] ? row[@name[:password]] : "pwd",
+            :role => @name[:role] ? row[@name[:role]] : nil
+        }
+    end
+end
+
 def load_user_as_csv csv
     cols_name = nil
-    def row2args cols, row
-        [
-            :name => row[cols_name[:name]],
-            :password => cols_name[:password] ? row[cols_name[:password]] : "pwd",
-            :role => cols_name[:role] ? row[cols_name[:role]] : nil
-        ]
-    end
-    CSV.foreach do |row|
+    CSV.foreach(csv, :col_sep => ";") do |row|
         if cols_name == nil
-            cols_name = [
-                :name => row.find("name"),
-                :password => row.find("password"),
-                :role => row.find("role")
-            ]
+            cols_name = Row2args.new row
         else
-            args = row2args row
+            args = cols_name.args row
+            puts args
         end
     end
 end
 
-load_user_as_csv ARGV[1]
+load_user_as_csv ARGV[0]
