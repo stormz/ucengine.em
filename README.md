@@ -21,6 +21,8 @@ If you use bundler, add it to your `Gemfile`:
 
 ### Client
 
+We have a classic block style API:
+
 ```ruby
 require "em-ucengine"
 EventMachine::UCEngine::Client.run do |uce|
@@ -29,6 +31,17 @@ EventMachine::UCEngine::Client.run do |uce|
     session.subscribe("demo") do |err, event|
       puts "Hey, we received an event: #{event.inspect}"
     end
+  end
+end
+```
+
+Or a fiber based API (you cannot use the subscribe method):
+
+```ruby
+require "em-ucengine"
+EventMachine::UCEngine::Client.synchrony do |uce|
+    session = uce.connect("participant", "pwd")
+    session.publish("em-ucengine.example.ping", "demo")
   end
 end
 ```

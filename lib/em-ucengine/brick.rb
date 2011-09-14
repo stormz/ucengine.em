@@ -22,6 +22,7 @@ module EventMachine
       # class including Brick. Some class variables are pushed as well:
       # +@@routes+, +@@bricks+, +@@bootstrap+.
       module ClassMethods
+
         def self.extended(klass)
           klass.class_eval {
             class_variable_set("@@routes", {})
