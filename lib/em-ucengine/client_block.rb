@@ -114,8 +114,10 @@ module EventMachine
               block.call(nil, [JSON.parse(message)])
             end
             s.error do |error|
-              puts error if s.ready_state != EM::EventSource::CONNECTING
-              block.call error, nil
+              if s.ready_state != EM::EventSource::CONNECTING
+                puts error
+                block.call error, nil
+              end
             end
             s.start(time)
           end
