@@ -13,7 +13,7 @@ GEM
   remote: http://rubygems.org/
   specs:
     addressable (2.2.6)
-    em-eventsource (0.1.4)
+    em-eventsource (0.1.5)
       em-http-request (~> 1.0.0)
       eventmachine (~> 1.0.0.beta3)
     em-http-request (1.0.0)
