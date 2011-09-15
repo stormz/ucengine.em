@@ -9,31 +9,7 @@ USER = "root"
 PASS = "root"
 CHAN = "demo"
 
-
 describe EventMachine::UCEngine do
-  describe EventMachine::UCEngine::ClientBlock do
-    it "fetches /time from UCEngine, no auth required" do
-      EM.run do
-        uce = EventMachine::UCEngine::Client.new
-        uce.time do |time|
-          puts time
-          time.wont_be_nil
-          EM.stop
-        end
-      end
-    end
-    it "fetches /time from UCEngine, no auth required, without block" do
-      EM.run do
-        uce = EventMachine::UCEngine::Client.new
-        response = uce.time
-        response.callback do |time|
-          puts time
-          time.wont_be_nil
-          EM.stop
-        end
-      end
-    end
- end
   describe EventMachine::UCEngine::ClientFiber do
     def with_authentication
       EventMachine::UCEngine::Client.synchrony do |uce|
@@ -56,18 +32,6 @@ describe EventMachine::UCEngine do
         time = uce.time
         time.wont_be_nil
         EM.stop
-      end
-    end
-=begin
-    it "ask time 100 times" do
-      EM.synchrony do
-        uce = EventMachine::UCEngine::Client.new_with_fiber
-        results = EM::Synchrony::Iterator.new(1..100, 5).map do |url, iter|
-          uce.time do |err, response|
-            iter.return response
-          end
-        end
-        puts results
       end
     end
 
@@ -253,7 +217,7 @@ describe EventMachine::UCEngine do
 
     it "fetches /time from UCEngine, no auth required" do
       EM.run do
-        uce = EventMachine::UCEngine::Client.new
+        uce = EM::UCEngine::Client.new
         uce.time do |err, time|
           err.must_be_nil
           time.wont_be_nil
@@ -265,7 +229,7 @@ describe EventMachine::UCEngine do
     it "is possible to authenticate a user" do
       with_authentication do |session|
         session.wont_be_nil
-        session.uce.must_be_instance_of EventMachine::UCEngine::ClientBlock
+        session.uce.must_be_instance_of EM::UCEngine::ClientBlock
         session.uid.wont_be_nil
         session.sid.wont_be_nil
         EM.stop
@@ -280,6 +244,37 @@ describe EventMachine::UCEngine do
             err.code.must_equal 404
             EM.stop
           }
+        end
+      end
+    end
+
+    it "return a deferrable and call the success callback" do
+      EM.run do
+        uce = EM::UCEngine::Client.new
+        req = uce.time
+        req.must_be_instance_of EM::DefaultDeferrable
+        req.callback do |time|
+          time.wont_be_nil
+          EM.stop
+        end
+        req.errback do |err|
+          assert false, "must not be called"
+          EM.stop
+        end
+      end
+    end
+
+    it "return a deferrable and call the error callback" do
+      with_authentication do |s|
+        req = s.get '/404'
+        req.must_be_instance_of EM::DefaultDeferrable
+        req.callback do |time|
+          assert false, "must not be called"
+          EM.stop
+        end
+        req.errback do |err|
+          err.wont_be_nil
+          EM.stop
         end
       end
     end
@@ -503,6 +498,5 @@ describe EventMachine::UCEngine do
         end
       end
     end
-=end
   end
 end
