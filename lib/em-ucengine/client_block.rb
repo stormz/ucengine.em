@@ -6,21 +6,21 @@ module EventMachine
     # Use response as block
     module ResponseBlock
       # TODO: Return a deferrable instead of the original request
-      def answer(req)
-        req.errback {
-          yield EM::UCEngine::Client::HttpError.new(0, "connect error", req.last_effective_url), nil if block_given? }
+      def answer(req, &block)
+        response = EM::DefaultDeferrable.new
+        response.callback(&block) if block_given?
+        req.errback do
+          response.fail EM::UCEngine::Client::HttpError.new(0, "connect error", req.last_effective_url)
+        end
         req.callback do
           data = req.response
-          if block_given?
-            if data['error']
-              yield EM::UCEngine::Client::UCError.new(req.response_header.status, data["error"], req.last_effective_url), nil
-            else
-              result = data["result"]
-              yield nil, result
-            end
+          if data["error"]
+            response.fail EM::UCEngine::Client::UCError.new(req.response_header.status, data["error"], req.last_effective_url)
+          else
+            response.succeed data["result"]
           end
         end
-        req
+        response
       end
 
       def answer_download(req)

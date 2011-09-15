@@ -11,6 +11,29 @@ CHAN = "demo"
 
 
 describe EventMachine::UCEngine do
+  describe EventMachine::UCEngine::ClientBlock do
+    it "fetches /time from UCEngine, no auth required" do
+      EM.run do
+        uce = EventMachine::UCEngine::Client.new
+        uce.time do |time|
+          puts time
+          time.wont_be_nil
+          EM.stop
+        end
+      end
+    end
+    it "fetches /time from UCEngine, no auth required, without block" do
+      EM.run do
+        uce = EventMachine::UCEngine::Client.new
+        response = uce.time
+        response.callback do |time|
+          puts time
+          time.wont_be_nil
+          EM.stop
+        end
+      end
+    end
+ end
   describe EventMachine::UCEngine::ClientFiber do
     def with_authentication
       EventMachine::UCEngine::Client.synchrony do |uce|
@@ -33,6 +56,18 @@ describe EventMachine::UCEngine do
         time = uce.time
         time.wont_be_nil
         EM.stop
+      end
+    end
+=begin
+    it "ask time 100 times" do
+      EM.synchrony do
+        uce = EventMachine::UCEngine::Client.new_with_fiber
+        results = EM::Synchrony::Iterator.new(1..100, 5).map do |url, iter|
+          uce.time do |err, response|
+            iter.return response
+          end
+        end
+        puts results
       end
     end
 
@@ -468,5 +503,6 @@ describe EventMachine::UCEngine do
         end
       end
     end
+=end
   end
 end
