@@ -248,6 +248,22 @@ describe EventMachine::UCEngine do
       end
     end
 
+    it "is possible to authenticate with the deferrable" do
+      EM.run do
+        uce = EM::UCEngine::Client.new
+        req = uce.connect(USER, PASS)
+        req.must_be_instance_of EM::DefaultDeferrable
+        req.callback do |session|
+          session.must_be_instance_of EM::UCEngine::ClientBlock::SessionBlock
+          EM.stop
+        end
+        req.errback do |err|
+          assert false, "must not be called"
+          EM.stop
+        end
+      end
+    end
+
     it "return a deferrable and call the success callback" do
       EM.run do
         uce = EM::UCEngine::Client.new

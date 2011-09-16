@@ -70,20 +70,32 @@ module EventMachine
       end
 
       def handle_connect(http)
-        http.errback  { yield EM::UCEngine::Client::HttpError.new(0, "Socket error"), nil }
+        response = EM::DefaultDeferrable.new
+        http.errback do
+          error = EM::UCEngine::Client::HttpError.new(0, "connect error")
+          response.fail error
+          yield error, nil if block_given?
+        end
         http.callback do
+          error = EM::UCEngine::Client::HttpError.new(http.response_header.status, http.response)
           if http.response_header.status >= 500
-            yield EM::UCEngine::Client::HttpError.new(http.response_header.status, http.response), nil
+            response.fail error
+            yield error, nil if block_given?
           else
             data = http.response
             if data['error']
-              yield EM::UCEngine::Client::UCError.new(http.response_header.status, data["error"]), nil
+              error = EM::UCEngine::Client::UCError.new(http.response_header.status, data["error"])
+              response.fail error
+              yield error, nil if block_given?
             else
               result = data["result"]
-              yield nil, SessionBlock.new(self, result["uid"], result["sid"])
+              session = SessionBlock.new(self, result["uid"], result["sid"])
+              response.succeed session
+              yield nil, session if block_given?
             end
           end
         end
+        response
       end
 
       class SessionBlock < BaseClient::BaseSession
