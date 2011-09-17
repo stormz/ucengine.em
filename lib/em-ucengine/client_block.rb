@@ -25,23 +25,29 @@ module EventMachine
         end
         response
       end
-      # TODO: Return a deferrable instead of the original request
+
       def answer_download(req)
-        req.errback  { yield EM::UCEngine::Client::HttpError.new(0, "connect error"), nil if block_given? }
+        response = EM::DefaultDeferrable.new
+        req.errback do
+          error = EM::UCEngine::Client::HttpError.new(0, "connect error", req.last_effective_url)
+          response.fail error
+          yield error, nil if block_given?
+        end
         req.callback do
-          if block_given?
-            if req.response_header.status == 200
-              data = req.response
-              filename = req.response_header['CONTENT_DISPOSITION']
-              file = Tempfile.new(filename)
-              file.write(data)
-              yield nil, file
-            else
-              yield EM::UCEngine::Client::HttpError.new(0, "download error")
-            end
+          if req.response_header.status == 200
+            data = req.response
+            filename = req.response_header['CONTENT_DISPOSITION']
+            file = Tempfile.new(filename)
+            file.write(data)
+            response.succeed file
+            yield nil, file if block_given?
+          else
+            error = EM::UCEngine::Client::HttpError.new(0, "download error")
+            response.fail error
+            yield error, nil if block_given?
           end
         end
-        req
+        response
       end
     end
 
