@@ -123,22 +123,22 @@ module EventMachine
         self.class.class_variable_get("@@bricks")
       end
 
-      # Wrapper around EventMachine's +add_timer+. Pass it a block to
-      # be executed after a time range.
+      # Wrapper around EventMachine's +Timer+. Pass it a block to be
+      # executed after a time range.
       #
       # @param [Integer] n time range in milliseconds
       # @yield
       def after(n, &block)
-        EventMachine::add_timer n, &block
+        EventMachine::Timer.new(n, &block)
       end
 
-      # Wrapper around EventMachine's +add_periodic_timer+. Pass it a block to
-      # be executed on a defined time frame.
+      # Wrapper around EventMachine's +PeriodicTimer+. Pass it a block
+      # to be executed on a defined time frame.
       #
       # @param [Integer] n time range in milliseconds
       # @yield
       def every(n, &block)
-        EventMachine::add_periodic_timer n, &block
+        EventMachine::PeriodicTimer.new(n, &block)
       end
 
       protected
