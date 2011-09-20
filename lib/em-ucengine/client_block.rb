@@ -106,21 +106,6 @@ module EventMachine
 
       class SessionBlock < BaseClient::BaseSession
         include ResponseBlock
-        # Batch create users
-        #
-        # @param [Array] users
-        def create_users(users, &block)
-          cpt = users.length
-          users.each do |user|
-            create_user(user) do
-              cpt -= 1
-              if cpt == 0
-                yield block
-              end
-            end
-          end
-        end
-
         # Subscribe to events
         #
         # @param [String] meeting
