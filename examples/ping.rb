@@ -14,3 +14,8 @@ EventMachine::UCEngine::Client.run do |uce|
     end
   end
 end
+
+client = UCEngine::Client.new
+session = client.connect("participant", "pwd")
+session.publish("em-ucengine.example.ping", "demo", {:type => "something", :value => [1,2,3]})
+

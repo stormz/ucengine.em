@@ -2,6 +2,7 @@
 
 require "minitest/autorun"
 require "em-ucengine"
+require "em-ucengine/client_em"
 
 
 # See http://docs.ucengine.org/install.html#inject-some-data
@@ -9,195 +10,16 @@ USER = "root"
 PASS = "root"
 CHAN = "demo"
 
-describe EventMachine::UCEngine do
-  describe EventMachine::UCEngine::ClientFiber do
+describe UCEngine do
+  describe UCEngine::Client do
+
     def with_authentication
-      EventMachine::UCEngine::Client.synchrony do |uce|
-        yield uce.connect(USER, PASS)
-      end
-    end
-
-    def with_random_user
-      with_authentication do |s|
-        user_id = s.create_user(:name => "John Doe #{rand 10_000}", :auth => "password", :credential => "foobar", :metadata => {})
-        yield s, user_id
-        s.delete_user(user_id)
-        EM.stop
-      end
-    end
-
-    it "fetches /time from UCEngine, no auth required" do
-      EM.synchrony do
-        uce = EventMachine::UCEngine::Client.new_with_fiber
-        time = uce.time
-        time.wont_be_nil
-        EM.stop
-      end
-    end
-
-    it "is possible to authenticate a user" do
-      with_authentication do |session|
-        session.wont_be_nil
-        session.uce.must_be_instance_of EventMachine::UCEngine::ClientFiber
-        session.uid.wont_be_nil
-        session.sid.wont_be_nil
-        EM.stop
-      end
-    end
-
-    it "fails when trying to authenticate a non existant user" do
-      EM.synchrony do
-        EventMachine::UCEngine::Client.synchrony do |uce|
-          begin
-            sess = uce.connect('Nobody', 'pwd')
-            assert false
-          rescue EM::UCEngine::Client::HttpError => err
-            err.wont_be_nil
-            err.code.must_equal 404
-            EM.stop
-          end
-        end
-      end
-    end
-
-    it "fetches time" do
-      with_authentication do |s|
-        time = s.time
-        time.wont_be_nil
-        EM.stop
-      end
-    end
-
-    it "retrieves presence informations" do
-      with_authentication do |s|
-        infos = s.presence(s.sid)
-        infos.wont_be_nil
-        infos["user"].must_equal s["uid"]
-        EM.stop
-      end
-    end
-
-    it "lists users" do
-      with_authentication do |s|
-        users = s.users
-        users.must_be_instance_of Array
-        users.count.must_be :>=, 1
-        users.map {|u| u["name"] }.must_include USER
-        EM.stop
-      end
-    end
-
-    it "find a user with its uid" do
-      with_authentication do |s|
-        user = s.user(s["uid"])
-        user.wont_be_nil
-        user["name"].must_equal USER
-        EM.stop
-      end
-    end
-
-    it "create a user and delete it" do
-      with_authentication do |s|
-        user_id = s.create_user(:name => "John Doe #{rand 10_000}", :auth => "password", :credential => "foobar", :metadata => {})
-        user_id.wont_be_nil
-        user_id.size.must_be :>, 0
-        s.delete_user(user_id)
-        EM.stop
-      end
-    end
-
-    it "get current domain informations" do
-      with_authentication do |s|
-        infos = s.infos
-        infos.wont_be_nil
-        infos["domain"].must_equal "localhost"
-        EM.stop
-      end
-    end
-
-    it "publish an event and retrieves it" do
-      with_authentication do |s|
-        n = rand(1_000_000_000)
-        event_id = s.publish("em-ucengine.spec.publish", CHAN, :number => n)
-        event_id.wont_be_nil
-        events = s.events(CHAN, :type => "em-ucengine.spec.publish", :count => 1, :order => 'desc')
-        events.wont_be_nil
-        events.first["metadata"]["number"].to_i.must_equal n
-
-        event = s.event(event_id)
-        event.wont_be_nil "event"
-        event['id'].must_equal event_id
-        EM.stop
-      end
-    end
-
-    it "create a role and delete it" do
-      role_name = "Role_#{rand 10_000}"
-      with_authentication do |s|
-        result = s.create_role(:name => role_name)
-        result.wont_be_nil
-        result.must_be :==, 'created'
-        s.delete_role(role_name)
-        EM.stop
-      end
-    end
-
-    it "set user role" do
-      role_name = "role#{rand 10_000}"
-      with_random_user do |s, user_id|
-        r = s.create_role(:name => role_name, :auth => "password", :credential => "foobar", :metadata => {})
-        r.wont_be_nil
-
-        result = s.user_role(user_id, :role => role_name, :auth => "password", :credential => "foobar")
-        result.wont_be_nil
-        result.must_be :==, 'ok'
-        result = s.user_can(s.uid, "update", "meeting")
-        result.must_equal true
-        s.delete_role(role_name)
-      end
-    end
-
-    it "create a meeting and delete it" do
-      with_authentication do |s|
-        n = rand(99999).to_s
-        result = s.create_meeting("chuck_#{n}")
-        result.must_be :==, 'created'
-        EM.stop
-      end
-    end
-
-    it "upload and download a file in a meeting" do
-      with_authentication do |s|
-        file = File.new(__FILE__)
-        content = File.read(__FILE__)
-        result = s.upload(CHAN, file, { :chuck => 'norris' })
-        result.wont_be_nil
-        file2 = s.download(CHAN, result)
-        file2.open.read.must_be :==, content
-        file2.close
-        file.close
-        EM.stop
-      end
-    end
-
-    it "list files and delete" do
-      with_authentication do |s|
-        file = File.new(__FILE__)
-        filename = s.upload(CHAN, file, { :chuck => 'norris' })
-        result = s.files(CHAN)
-        result.size.must_be :>, 0
-        result = s.delete_file(CHAN, filename)
-        result.must_be :==, "ok"
-
-        EM.stop
-      end
-    end
-  end
-
-  describe EventMachine::UCEngine::Client do
-    def with_authentication
-      EventMachine::UCEngine::Client.run do |uce|
+      UCEngine::Client.run do |uce|
         uce.connect(USER, PASS) { |err, sess|
+          err.must_be_nil
+          sess.wont_be_nil
+          sess.uid.wont_be_nil
+          sess.sid.wont_be_nil
           if err
             EM.stop
             raise err
@@ -209,7 +31,7 @@ describe EventMachine::UCEngine do
 
     def with_random_user
       with_authentication do |s|
-        s.create_user(:name => "John Doe #{rand 10_000}", :auth => "password", :credential => "foobar", :metadata => {}) do |err, user_id|
+        s.create_user(:name => "John Doe #{rand 10_000}", :auth => "password", :credential => "foobar") do |err, user_id|
           yield s, user_id
         end
       end
@@ -217,7 +39,7 @@ describe EventMachine::UCEngine do
 
     it "fetches /time from UCEngine, no auth required" do
       EM.run do
-        uce = EM::UCEngine::Client.new
+        uce = UCEngine::Client.new
         uce.time do |err, time|
           err.must_be_nil
           time.wont_be_nil
@@ -229,7 +51,7 @@ describe EventMachine::UCEngine do
     it "is possible to authenticate a user" do
       with_authentication do |session|
         session.wont_be_nil
-        session.uce.must_be_instance_of EM::UCEngine::ClientBlock
+        session.uce.must_be_instance_of UCEngine::Client
         session.uid.wont_be_nil
         session.sid.wont_be_nil
         EM.stop
@@ -238,7 +60,7 @@ describe EventMachine::UCEngine do
 
     it "fails when trying to authenticate a non existant user" do
       EM.run do
-        EventMachine::UCEngine::Client.run do |uce|
+        UCEngine::Client.run do |uce|
           uce.connect('Nobody', 'pwd') { |err, sess|
             err.wont_be_nil
             err.code.must_equal 404
@@ -248,13 +70,13 @@ describe EventMachine::UCEngine do
       end
     end
 
-    it "is possible to authenticate with the deferrable" do
+    it "is possible to authenticate with a deferrable" do
       EM.run do
-        uce = EM::UCEngine::Client.new
+        uce = UCEngine::Client.new
         req = uce.connect(USER, PASS)
         req.must_be_instance_of EM::DefaultDeferrable
         req.callback do |session|
-          session.must_be_instance_of EM::UCEngine::ClientBlock::SessionBlock
+          session.must_be_instance_of UCEngine::Client::Session
           EM.stop
         end
         req.errback do |err|
@@ -266,7 +88,7 @@ describe EventMachine::UCEngine do
 
     it "return a deferrable and call the success callback" do
       EM.run do
-        uce = EM::UCEngine::Client.new
+        uce = UCEngine::Client.new
         req = uce.time
         req.must_be_instance_of EM::DefaultDeferrable
         req.callback do |time|
@@ -282,7 +104,7 @@ describe EventMachine::UCEngine do
 
     it "return a deferrable and call the error callback" do
       with_authentication do |s|
-        req = s.get '/404'
+        req = s.answer(s.get(s.url('/404')))
         req.must_be_instance_of EM::DefaultDeferrable
         req.callback do |time|
           assert false, "must not be called"
@@ -295,7 +117,7 @@ describe EventMachine::UCEngine do
       end
     end
 
-    it "fetches time" do
+    it "fetches time, with auth" do
       with_authentication do |s|
         s.time do |err, time|
           err.must_be_nil
@@ -341,12 +163,15 @@ describe EventMachine::UCEngine do
 
     it "create a user and delete it" do
       with_authentication do |s|
-        s.create_user(:name => "John Doe #{rand 10_000}", :auth => "password", :credential => "foobar", :metadata => {}) do |err, user_id|
+        s.create_user(:name => "John Doe #{rand 10_000}", :auth => "password", :credential => "foobar") do |err, user_id|
           err.must_be_nil
           user_id.wont_be_nil
           user_id.size.must_be :>, 0
-          s.delete_user(user_id)
-          EM.stop
+          s.delete_user(user_id) do |err, result|
+            err.must_be_nil
+            result.wont_be_nil
+            EM.stop
+          end
         end
       end
     end
@@ -400,7 +225,6 @@ describe EventMachine::UCEngine do
         numbers.each.with_index do |n,i|
           EM.add_timer(0.2 * i) do
             s.publish("em-ucengine.spec.subscribe", CHAN, :number => n) do |err, result|
-              #p "plop"
               assert_nil err
               result.wont_be_nil
             end

@@ -1,2 +1,2 @@
 require "em-ucengine/client"
-require "em-ucengine/brick"
+require "em-ucengine/client_nethttp"
