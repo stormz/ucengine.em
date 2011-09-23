@@ -9,7 +9,7 @@ module UCEngine
 
     def answer(req)
       if req.kind_of?(Net::HTTPServerError)
-        raise UCEngine::Client::HTTPError.new(req.code, req.body)
+        raise UCEngine::Client::HttpError.new(req.code, req.body)
       end
 
       data = JSON.parse(req.body)
