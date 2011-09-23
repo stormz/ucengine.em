@@ -1,5 +1,6 @@
 require 'net/http'
 require 'json'
+require 'cgi'
 
 require_relative "errors"
 
@@ -28,25 +29,21 @@ module UCEngine
   end
 
   module NetHttpRequest
-
-    def url(*args)
-      uce.url(*args)
-    end
-
-    def get(path, params=nil)
+    def get(path, params={}, session=nil)
       uri = URI.parse(path)
+      params.merge!(:uid => self.uid, :sid => self.sid) if self.class == UCEngine::Client::Session
       query = params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&') if params
       Net::HTTP.start(uri.host, uri.port) do |http|
         http.get("#{uri.path}?#{query}")
       end
     end
 
-    def post(path, params=nil, body=nil)
+    def post(path, params=nil, body=nil, session=nil)
       uri = URI.parse(path)
       Net::HTTP.post_form(uri, body)
     end
 
-    def put(path, params=nil, body=nil)
+    def put(path, params=nil, body=nil, session=nil)
     end
 
   end

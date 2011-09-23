@@ -54,6 +54,10 @@ module UCEngine
     # Session represent the U.C.Engine client with and sid and uid
     # See #connect
     class Session < Struct.new(:uce, :uid, :sid)
+      def url(*args)
+        uce.url(*args)
+      end
+
       ### Time - http://docs.ucengine.org/api.html#time ###
 
       # Get server time
