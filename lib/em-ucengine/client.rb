@@ -17,12 +17,6 @@ module UCEngine
       @port = port
       @root = api_root
       @version = api_version
-
-      #EM::HttpRequest.use EM::Middleware::JSONResponse
-    end
-
-    def uce
-      return self
     end
 
     # Format url to api

@@ -55,7 +55,6 @@ module UCEngine
     include UCEngine::NetHttpResponse
     include UCEngine::NetHttpRequest
 
-
     class Session
       include UCEngine::NetHttpResponse
       include UCEngine::NetHttpRequest

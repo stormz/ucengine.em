@@ -10,11 +10,11 @@ USER = "root"
 PASS = "root"
 CHAN = "demo"
 
-describe UCEngine do
-  describe UCEngine::Client do
+describe EM::UCEngine do
+  describe EM::UCEngine::Client do
 
     def with_authentication
-      UCEngine::Client.run do |uce|
+      EM::UCEngine::Client.run do |uce|
         uce.connect(USER, PASS) { |err, sess|
           err.must_be_nil
           sess.wont_be_nil
@@ -39,7 +39,7 @@ describe UCEngine do
 
     it "fetches /time from UCEngine, no auth required" do
       EM.run do
-        uce = UCEngine::Client.new
+        uce = EM::UCEngine::Client.new
         uce.time do |err, time|
           err.must_be_nil
           time.wont_be_nil
@@ -51,7 +51,7 @@ describe UCEngine do
     it "is possible to authenticate a user" do
       with_authentication do |session|
         session.wont_be_nil
-        session.uce.must_be_instance_of UCEngine::Client
+        session.uce.must_be_instance_of EM::UCEngine::Client
         session.uid.wont_be_nil
         session.sid.wont_be_nil
         EM.stop
@@ -59,24 +59,22 @@ describe UCEngine do
     end
 
     it "fails when trying to authenticate a non existant user" do
-      EM.run do
-        UCEngine::Client.run do |uce|
-          uce.connect('Nobody', 'pwd') { |err, sess|
-            err.wont_be_nil
-            err.code.must_equal 404
-            EM.stop
-          }
+      EM::UCEngine::Client.run do |uce|
+        uce.connect('Nobody', 'pwd') do |err, sess|
+          err.wont_be_nil
+          err.code.must_equal 404
+          EM.stop
         end
       end
     end
 
     it "is possible to authenticate with a deferrable" do
       EM.run do
-        uce = UCEngine::Client.new
+        uce = EM::UCEngine::Client.new
         req = uce.connect(USER, PASS)
         req.must_be_instance_of EM::DefaultDeferrable
         req.callback do |session|
-          session.must_be_instance_of UCEngine::Client::Session
+          session.must_be_instance_of EM::UCEngine::Client::Session
           EM.stop
         end
         req.errback do |err|
@@ -88,7 +86,7 @@ describe UCEngine do
 
     it "return a deferrable and call the success callback" do
       EM.run do
-        uce = UCEngine::Client.new
+        uce = EM::UCEngine::Client.new
         req = uce.time
         req.must_be_instance_of EM::DefaultDeferrable
         req.callback do |time|
