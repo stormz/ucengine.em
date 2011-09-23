@@ -47,17 +47,6 @@ EventMachine::UCEngine::Client.run do |uce|
 end
 ```
 
-Fiber based API with em-synchrony (you cannot use the subscribe method):
-
-```ruby
-require "em-ucengine"
-EventMachine::UCEngine::Client.synchrony do |uce|
-    session = uce.connect("participant", "pwd")
-    session.publish("em-ucengine.example.ping", "demo")
-  end
-end
-```
-
 ### Brick
 
 ```ruby
@@ -79,6 +68,7 @@ Don't hesitate to look at the specs for more examples ;-)
 ## TODO
 
 * Complete the specs
+* Implements the download and upload methods for the Net::HTTP backend
 
 ## Issues or Suggestions
 

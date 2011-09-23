@@ -31,6 +31,13 @@ module EventMachine
         response
       end
 
+      def answer_bool(req, &block)
+        answer(req) do |err, result|
+          result = (result == "true")
+          yield nil, result if block_given?
+        end
+      end
+
       def answer_download(req)
         response = EM::DefaultDeferrable.new
         req.errback do
@@ -186,6 +193,46 @@ module EventMachine
           end
           s
         end
+
+        # Upload a file in a meeting room
+        #
+        # @param [String] meeting name
+        # @param [File] file
+        # @param [Hash] metadata
+        def upload(meeting, file, metadata={}, &block)
+          partfile = Part.new( :name => 'content',
+                               :filename => File.basename(file.path),
+                               :body =>  file.read)
+          partuid = Part.new( :name => 'uid',
+                              :body => uid)
+          partsid = Part.new( :name => 'sid',
+                              :body => sid)
+          parts = [partfile, partsid, partuid]
+          parts << metadata.inject([]) { |array, (key, value)|
+            array << Part.new( :name => "metadata[#{key}]",
+                               :body => value )
+          }
+
+          body = MultipartBody.new(parts)
+
+          conn = EM::HttpRequest.new(uce.url "/file/#{meeting}")
+          req = conn.post( :head => {'content-type' => "multipart/form-data; boundary=#{body.boundary}"},
+                           :body => "#{body.to_s}\r\n")
+          answer(req, &block)
+        end
+
+        # Download a file
+        # The result will a File object
+        # uce.download("demo", "myfile") do |err, file|
+        #    puts file.open.read
+        # end
+        #
+        # @param [String] meeting
+        # @param [String] filename
+        def download(meeting, filename, &block)
+          answer_download get(url("/file/#{meeting}/#{filename}")), &block
+        end
+
       end
     end
   end

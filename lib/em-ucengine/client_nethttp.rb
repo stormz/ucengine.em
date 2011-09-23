@@ -20,30 +20,66 @@ module UCEngine
       data['result']
     end
 
+    def answer_bool(req, &block)
+      result = answer(req)
+      result == "true"
+    end
+
     def answer_connect(req)
       credentials = answer(req)
       UCEngine::Client::Session.new(self, credentials['uid'], credentials['sid'])
     end
 
-    alias :answer_download :answer
   end
 
   module NetHttpRequest
-    def get(path, params={}, session=nil)
+
+    def get(path, params=nil)
       uri = URI.parse(path)
-      params.merge!(:uid => self.uid, :sid => self.sid) if self.class == UCEngine::Client::Session
+      params ||= {}
+      params.merge!({:uid => self.uid, :sid => self.sid})
+
       query = params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&') if params
       Net::HTTP.start(uri.host, uri.port) do |http|
         http.get("#{uri.path}?#{query}")
       end
     end
 
-    def post(path, params=nil, body=nil, session=nil)
+    def post(path, params=nil, body=nil)
       uri = URI.parse(path)
+      body ||={}
+      body.merge!(params) if params
+      body.merge!({:uid => self.uid, :sid => self.sid}) if self.class == UCEngine::Client::Session
+
       Net::HTTP.post_form(uri, body)
     end
 
-    def put(path, params=nil, body=nil, session=nil)
+    def delete(path, params=nil)
+      uri = URI.parse(path)
+      params ||= {}
+      params.merge!({:uid => self.uid, :sid => self.sid})
+
+      query = params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&') if params
+      Net::HTTP.start(uri.host, uri.port) do |http|
+        http.delete("#{uri.path}?#{query}")
+      end
+    end
+
+    # Perform a post request on the API with a content type application/json
+    #
+    # @param [String] path
+    # @param [Hash] body
+    def json_post(path, body)
+      #http_request(:post, path, {}, body, nil, {'Content-Type' => 'application/json'})
+      uri = URI.parse(path)
+
+      req = Net::HTTP::Post.new(uri.path)
+      req.body = body.to_json
+      req.add_field("Content-Type", "application/json")
+
+      Net::HTTP.new(uri.host, uri.port).start do |http|
+        http.request(req)
+      end
     end
 
   end

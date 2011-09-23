@@ -124,10 +124,8 @@ module UCEngine
       # @param [String] object
       # @param [Hash] conditions
       # @param [String] meeting name
-      def user_can(uid, action, object, conditions={}, location="")
-        answer get(url("/user/#{uid}/can/#{action}/#{object}/#{location}"), :conditions => conditions) do |err, result|
-          yield err, result == "true" if block_given?
-        end
+      def user_can(uid, action, object, conditions={}, location="", &block)
+        answer_bool get(url("/user/#{uid}/can/#{action}/#{object}/#{location}"), :conditions => conditions), &block
       end
 
       ### General infos - http://docs.ucengine.org/api.html#infos ###
@@ -239,45 +237,6 @@ module UCEngine
       end
 
       ### Files - http://docs.ucengine.org/api.html#upload-a-file ###
-
-      # Upload a file in a meeting room
-      #
-      # @param [String] meeting name
-      # @param [File] file
-      # @param [Hash] metadata
-      def upload(meeting, file, metadata={}, &block)
-        partfile = Part.new( :name => 'content',
-                             :filename => File.basename(file.path),
-                             :body =>  file.read)
-        partuid = Part.new( :name => 'uid',
-                            :body => uid)
-        partsid = Part.new( :name => 'sid',
-                            :body => sid)
-        parts = [partfile, partsid, partuid]
-        parts << metadata.inject([]) { |array, (key, value)|
-          array << Part.new( :name => "metadata[#{key}]",
-                             :body => value )
-        }
-
-        body = MultipartBody.new(parts)
-
-        conn = EM::HttpRequest.new(uce.url "/file/#{meeting}")
-        req = conn.post( :head => {'content-type' => "multipart/form-data; boundary=#{body.boundary}"},
-                         :body => "#{body.to_s}\r\n")
-        answer(req, &block)
-      end
-
-      # Download a file
-      # The result will a File object
-      # uce.download("demo", "myfile") do |err, file|
-      #    puts file.open.read
-      # end
-      #
-      # @param [String] meeting
-      # @param [String] filename
-      def download(meeting, filename, &block)
-        answer_download get(url("/file/#{meeting}/#{filename}")), &block
-      end
 
       # Delete a file
       #

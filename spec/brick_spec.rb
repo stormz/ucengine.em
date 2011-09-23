@@ -2,7 +2,6 @@
 
 require "minitest/autorun"
 require "em-ucengine"
-require "em-ucengine/client_em"
 require "em-ucengine/brick"
 
 describe EventMachine::UCEngine::Brick do

@@ -2,8 +2,6 @@
 
 require "minitest/autorun"
 require "em-ucengine"
-require "em-ucengine/client_em"
-
 
 # See http://docs.ucengine.org/install.html#inject-some-data
 USER = "root"
@@ -266,7 +264,7 @@ describe EM::UCEngine do
       end
     end
 
-    it "create a meeting and delete it" do
+    it "create a meeting" do
       with_authentication do |s|
         n = rand(99999).to_s
         s.create_meeting("chuck_#{n}") do |err, result|
