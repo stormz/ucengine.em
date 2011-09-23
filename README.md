@@ -67,6 +67,7 @@ Don't hesitate to look at the specs for more examples ;-)
 
 ## TODO
 
+* Release the gem with another name
 * Complete the specs
 * Implements the download and upload methods for the Net::HTTP backend
 
