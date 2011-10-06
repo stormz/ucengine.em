@@ -128,20 +128,6 @@ module UCEngine
         answer_bool get(url("/user/#{uid}/can/#{action}/#{object}/#{location}"), :conditions => conditions), &block
       end
 
-      ### General infos - http://docs.ucengine.org/api.html#infos ###
-
-      # Get domain infos
-      def infos(&block)
-        answer get(url("/infos")), &block
-      end
-
-      # Update domain infos
-      #
-      # @param [Hash] metadata
-      def update_infos(metadata, &block)
-        answer put(url "/infos", :metadata => metadata), &block
-      end
-
       ### Meetings - http://docs.ucengine.org/api.html#meeting ###
 
       # List meetings

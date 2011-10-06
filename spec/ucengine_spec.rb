@@ -87,14 +87,6 @@ describe UCEngine::Client do
     end
   end
 
-  it "get current domain informations" do
-    with_authentication do |s|
-      infos = s.infos
-      infos.wont_be_nil
-      infos["domain"].must_equal "localhost"
-    end
-  end
-
   it "publish an event and retrieves it" do
     with_authentication do |s|
       n = rand(1_000_000_000)
