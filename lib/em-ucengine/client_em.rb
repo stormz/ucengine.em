@@ -140,9 +140,9 @@ module EventMachine
 
       EM::HttpRequest.use EM::Middleware::JSONResponse
 
-    def time(&block)
-      Session.new(self, nil, nil).time &block
-    end
+      def time(&block)
+        Session.new(self, nil, nil).time &block
+      end
 
       # Init EventMachine and init a new instance of U.C.Engine client
       # See #initialize for arguments
