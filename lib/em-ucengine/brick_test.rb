@@ -3,16 +3,11 @@ module EventMachine
     module Brick
       # A simple class to allowing you to test your bricks
       module Test
-        class FakeUce < ::MiniTest::Mock
-          def publish(*args)
-          end
-        end
-
         # Return the instance of the brick
         def brick
           return @b unless @b.nil?
           @b = app.new
-          @b.start FakeUce.new
+          @b.start MiniTest::Mock.new
           @b
         end
 

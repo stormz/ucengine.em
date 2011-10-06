@@ -44,6 +44,10 @@ describe EM::UCEngine::Brick::Test do
     on "complex" do |event|
       @event = event
     end
+
+    on "getroster" do |event|
+      @uce.roster
+    end
   end
 
   def app
@@ -67,6 +71,13 @@ describe EM::UCEngine::Brick::Test do
   it "allows to test ucengine calls" do
     brick.uce.expect(:publish, nil, ["pong", "meeting"])
     trigger "ping"
+    brick.uce.verify
+    done
+  end
+
+  it "allows to mock the complete ucengine API" do
+    brick.uce.expect(:roster, nil)
+    trigger "getroster"
     brick.uce.verify
     done
   end
