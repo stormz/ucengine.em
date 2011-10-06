@@ -18,6 +18,8 @@ If you use bundler, add it to your `Gemfile`:
 
 ### Client
 
+#### EventMachine
+
 We have a classic block style API:
 
 ```ruby
@@ -47,10 +49,21 @@ EventMachine::UCEngine::Client.run do |uce|
 end
 ```
 
+#### Net/HTTP
+
+```ruby
+require "em-ucengine"
+
+uce = UCEngine::Client.new
+session = uce.connect("participant", "pwd")
+session.publish("em-ucengine.example.ping", "demo")
+```
+
 ### Brick
 
 ```ruby
 require "em-ucengine"
+require "em-ucengine/brick"
 
 class MyBrick
   include EM::UCEngine::Brick
