@@ -1,28 +1,30 @@
 module EventMachine
   module UCEngine
     module Brick
+      # A simple class to allowing you to test your bricks
       module Test
         class FakeUce < ::MiniTest::Mock
           def publish(*args)
           end
         end
 
+        # Return the instance of the brick
         def brick
           return @b unless @b.nil?
           @b = app.new
-          @b.start uce
+          @b.start FakeUce.new
           @b
         end
 
-        def uce
-          FakeUce.new
-        end
-
-        def trigger(name)
-          event = { "type" => name }
+        # Trigger a U.C.Engine event into the brick
+        #
+        # @param [String] name
+        # @param [Hash] data
+        def trigger(name, data={})
+          event = data.merge "type" => name
           brick.routes[name].each do |proc|
             brick.instance_exec(event, &proc)
-          end
+          end unless brick.routes[name].nil?
         end
       end
     end

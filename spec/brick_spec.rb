@@ -27,7 +27,7 @@ describe EM::UCEngine::Brick::Test do
   class MyBrick2
     include EM::UCEngine::Brick
 
-    attr_accessor :cpt
+    attr_accessor :cpt, :event
 
     bootstrap do
       @cpt = 0
@@ -38,7 +38,11 @@ describe EM::UCEngine::Brick::Test do
     end
 
     on "ping" do |event|
-      uce.publish("pong", "meeting")
+      @uce.publish("pong", "meeting")
+    end
+
+    on "complex" do |event|
+      @event = event
     end
   end
 
@@ -50,6 +54,13 @@ describe EM::UCEngine::Brick::Test do
     brick.cpt.must_equal 0
     trigger "incr"
     brick.cpt.must_equal 1
+    done
+  end
+
+  it "allows to trigger events with metadata and more" do
+    trigger "complex", "from" => "me", "metadata" => { "hello" => 1 }
+    brick.event.must_equal "type" => "complex", "from" => "me", "metadata" => { "hello" => 1 }
+    trigger "404"
     done
   end
 
