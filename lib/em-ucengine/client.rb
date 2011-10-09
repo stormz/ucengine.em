@@ -132,16 +132,15 @@ module UCEngine
 
       # List meetings
       #
-      # @param [String] status (upcoming, opened, closed or all)
-      def meetings(status=nil, &block)
-        answer get(url "/meeting/#{status}"), &block
+      def meetings(&block)
+        answer get(url "/meeting/"), &block
       end
 
       # Get meeting
       #
       # @param [String] meeting
       def meeting(meeting, &block)
-        answer get(url "/meeting/all/#{meeting}"), &block
+        answer get(url "/meeting/#{meeting}"), &block
       end
 
       # Create a meeting
@@ -150,7 +149,7 @@ module UCEngine
       # @param [Hash] metadata
       def create_meeting(meeting, body={}, &block)
         body.merge!(:name => meeting)
-        answer post(url("/meeting/all"), body), &block
+        answer post(url("/meeting/"), body), &block
       end
 
       # Update a meeting
@@ -158,7 +157,7 @@ module UCEngine
       # @param [String] meeting name
       # @param [Hash] metadata
       def update_meeting(meeting, body={}, &block)
-        answer put(url "/meeting/all/#{meeting}", body), &block
+        answer put(url "/meeting//#{meeting}", body), &block
       end
 
       ### Rosters - http://docs.ucengine.org/api.html#join-a-meeting ###
@@ -167,14 +166,14 @@ module UCEngine
       #
       # @param [String] meeting
       def roster(meeting, &block)
-        answer get(url "/meeting/all/#{meeting}/roster"), &block
+        answer get(url "/meeting/#{meeting}/roster"), &block
       end
 
       # Join the meeting
       #
       # @param [String] meeting
-      def join_roster(meeting, &block)
-        answer post(url "/meeting/all/#{meeting}/roster"), &block
+      def join_roster(meeting, body={}, &block)
+        answer post(url "/meeting/#{meeting}/roster", body), &block
       end
 
       # Quit the meeting
@@ -182,7 +181,7 @@ module UCEngine
       # @param [String] meeting
       # @param [String] uid
       def quit_roster(meeting, uid=nil, &block)
-        answer delete(url "/meeting/all/#{meeting}/roster/#{uid || @uid}"), &block
+        answer delete(url "/meeting/#{meeting}/roster/#{uid || @uid}"), &block
       end
 
       ### Events - http://docs.ucengine.org/api.html#events ###
