@@ -12,7 +12,7 @@ Install with Rubygems:
 
 If you use bundler, add it to your `Gemfile`:
 
-    gem "em-ucengine", "~>0.2"
+    gem "em-ucengine", "~> 0.3"
 
 ## Usage
 
