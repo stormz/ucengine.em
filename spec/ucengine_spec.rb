@@ -38,6 +38,15 @@ describe UCEngine::Client do
     end
   end
 
+  it "is possible to authenticate a user with the `none` auth backend" do
+    with_authentication do |session|
+      sess = session.connect('anonymous', '')
+      sess.wont_be_nil
+      sess.uid.wont_be_nil
+      sess.sid.wont_be_nil
+    end
+  end
+
   it "fails when trying to authenticate a non existant user" do
     uce = UCEngine::Client.new
     proc do

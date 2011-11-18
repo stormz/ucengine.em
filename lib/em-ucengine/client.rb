@@ -67,6 +67,16 @@ module UCEngine
 
       ### Presence - http://docs.ucengine.org/api.html#authentication ###
 
+      # Create a presence for another user
+      #
+      # @param [String] User name
+      # @param [String] Password
+      def connect(user, password, &block)
+        body = { "name" => user, "credential" => password }
+        req = post(url("/presence"), {}, body)
+        answer_connect(req, &block)
+      end
+
       # Get infos on the presence
       #
       # @param [String] Sid

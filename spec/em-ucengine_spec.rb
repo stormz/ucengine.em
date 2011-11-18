@@ -56,6 +56,18 @@ describe EM::UCEngine do
       end
     end
 
+    it "is possible to authenticate a user with the `none` auth backend" do
+      with_authentication do |session|
+        session.connect('anonymous', '') do |err, sess|
+          err.must_be_nil
+          sess.wont_be_nil
+          sess.uid.wont_be_nil
+          sess.sid.wont_be_nil
+          EM.stop
+        end
+      end
+    end
+
     it "fails when trying to authenticate a non existant user" do
       EM::UCEngine::Client.run do |uce|
         uce.connect('Nobody', 'pwd') do |err, sess|
