@@ -81,4 +81,25 @@ describe EM::UCEngine::Brick::Test do
     brick.uce.verify
     done
   end
+
+  describe "with a bootstrap param" do
+    class MyBrickWithParam
+      include EM::UCEngine::Brick
+
+      attr_accessor :config2
+
+      bootstrap do |config|
+        @config2 = config
+      end
+    end
+
+    def app
+      MyBrickWithParam
+    end
+
+    it "allows pass params to the bootstrap" do
+      brick.config2.wont_be_nil
+      done
+    end
+  end
 end

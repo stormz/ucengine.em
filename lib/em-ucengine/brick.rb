@@ -104,7 +104,7 @@ module EventMachine
           end
         else # Sub-brick, init with the shared UCE client instance.
           @uce = uce
-          self.instance_eval &bootstrap
+          call_bootstrap
         end
       end
 
@@ -143,6 +143,15 @@ module EventMachine
 
       protected
 
+      # Call the bootstrap block
+      def call_bootstrap
+        if bootstrap.arity == 0
+          self.instance_eval &bootstrap
+        elsif bootstrap.arity == 1
+          self.instance_exec @config, &bootstrap
+        end
+      end
+
       # Hook sub-brick's declared event handlers into the event loop, by subscribing to
       # UCE core.
       #
@@ -151,7 +160,7 @@ module EventMachine
         r = routes.keys
 
         # Bootstrap.
-        self.instance_eval &bootstrap
+        call_bootstrap
 
         # Merge routes when composing bricks.
         bricks_instances.each do |brick|
