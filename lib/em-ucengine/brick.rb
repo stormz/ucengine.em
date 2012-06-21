@@ -97,7 +97,7 @@ module EventMachine
           @uce.connect(@config[:name], @config[:credential]) do |err, uce|
             @uce = uce
             ready(bricks.map do |brick|
-              b = brick.new
+              b = brick.new @config
               b.start @uce
               b
             end)
