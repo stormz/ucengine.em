@@ -11,8 +11,8 @@ Gem::Specification.new do |s|
   s.files            = Dir["LICENSE", "README.md", "Gemfile", "lib/**/*.rb"]
   s.require_paths    = ["lib"]
   s.rubygems_version = %q{1.3.7}
-  s.add_dependency "eventmachine", "1.0.0.beta.4"
-  s.add_dependency "em-http-request", "1.0.0"
+  s.add_dependency "eventmachine", "~> 1.0.0.rc"
+  s.add_dependency "em-http-request", "~> 1.0.0"
   s.add_dependency "em-synchrony", "~> 1.0.0"
   s.add_dependency "em-eventsource", "~>0.1.0"
   s.add_dependency "yajl-ruby", "~>0.8"
