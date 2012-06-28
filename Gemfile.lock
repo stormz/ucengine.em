@@ -5,7 +5,7 @@ PATH
       em-eventsource (~> 0.1.0)
       em-http-request (~> 1.0.0)
       em-synchrony (~> 1.0.0)
-      eventmachine (~> 1.0.0.rc)
+      eventmachine (~> 1.0.0.beta)
       multipart_body (~> 0.2)
       yajl-ruby (~> 0.8)
 
