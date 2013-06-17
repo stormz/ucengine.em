@@ -183,7 +183,7 @@ module UCEngine
       #
       # @param [String] meeting
       def join_roster(meeting, body={}, &block)
-        answer post(url "/meeting/#{meeting}/roster", body), &block
+        answer post(url("/meeting/#{meeting}/roster"), body), &block
       end
 
       # Quit the meeting
