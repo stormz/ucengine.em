@@ -1,5 +1,5 @@
 require 'net/http'
-require 'json'
+require 'yajl'
 require 'cgi'
 
 require_relative "errors"
