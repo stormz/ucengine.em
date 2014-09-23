@@ -11,11 +11,11 @@ Gem::Specification.new do |s|
   s.files            = Dir["LICENSE", "README.md", "Gemfile", "lib/**/*.rb"]
   s.require_paths    = ["lib"]
   s.rubygems_version = %q{1.3.7}
-  s.add_dependency "eventmachine", "~> 1.0.0"
+  s.add_dependency "eventmachine",    "~> 1.0.0"
   s.add_dependency "em-http-request", "~> 1.0.0"
-  s.add_dependency "em-synchrony", "~> 1.0.0"
-  s.add_dependency "em-eventsource", "~>0.1.0"
-  s.add_dependency "yajl-ruby", "~>0.8"
+  s.add_dependency "em-synchrony",    "~> 1.0.0"
+  s.add_dependency "em-eventsource",  "~> 0.1.0"
+  s.add_dependency "yajl-ruby",       ">= 1.2.1"
   s.add_dependency "multipart_body", "~>0.2"
   s.add_development_dependency "minitest", "~>2.0"
   s.add_development_dependency "bundler"

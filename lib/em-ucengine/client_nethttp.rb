@@ -1,5 +1,5 @@
 require 'net/http'
-require 'json'
+require 'yajl'
 require 'cgi'
 
 require_relative "errors"
@@ -74,7 +74,7 @@ module UCEngine
       uri = URI.parse(path)
 
       req = Net::HTTP::Post.new(uri.path)
-      req.body = body.to_json
+      req.body = Yajl.dump(body)
       req.add_field("Content-Type", "application/json")
 
       Net::HTTP.new(uri.host, uri.port).start do |http|
